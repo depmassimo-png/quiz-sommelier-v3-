@@ -449,7 +449,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-app" style="display:none; width:100%;">
   <!-- Top bar -->
   <div class="topbar" style="max-width:900px; margin:0 auto .75rem;">
-    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.49</span></span>
+    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.50</span></span>
     <div class="topbar-user">
       <span id="topbar-username" style="font-size:13px;"></span>
       <span id="topbar-badge" class="topbar-badge"></span>
@@ -496,7 +496,7 @@ tr:last-child td { border-bottom:none; }
     </div>
   </div>
   <div style="max-width:900px; margin:.5rem auto 0; text-align:right;">
-    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.49</span>
+    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.50</span>
   </div>
 </div>
 
@@ -693,7 +693,7 @@ tr:last-child td { border-bottom:none; }
 </div>
 
 <script>
-const APP_VERSION = '2.49';
+const APP_VERSION = '2.50';
 const SUPABASE_URL = 'https://ypqgmwcrnhxfdfkfjivc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcWdtd2Nybmh4ZmRma2ZqaXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3MTcsImV4cCI6MjA5NDM5OTcxN30.gOVk3CjeT20MeZORLUFvL4Jd1FXJJSSRczUmUUANxXY';
 const CODICE_CLASSE = 'SOMMELIER2026';
@@ -2891,7 +2891,7 @@ function renderVF(panel, q) {
     <div class="question-label" id="vf-testo">${testoBase}</div>
     <div class="bacca-group"><button class="bacca-btn" id="vf-V" onclick="selVF(true)">✓ Vero</button><button class="bacca-btn" id="vf-F" onclick="selVF(false)">✗ Falso</button></div>
     <div class="feedback" id="feedback"></div>
-    <div class="actions"><button class="btn primary" id="check-btn" onclick="checkVF()">verifica</button><button class="btn" id="next-btn" style="display:none" onclick="nextQ()">prossima →</button></div>`;
+    <div class="actions"><button class="btn primary" id="check-btn" onclick="checkVF()">verifica</button><button class="btn" id="next-btn" style="display:none" onclick="prossimaProduzioneQ()">prossima →</button></div>`;
   // Applica glossario in background
   evidenziaTermini(testoBase).then(html => {
     const el = document.getElementById('vf-testo');
@@ -2938,7 +2938,7 @@ function renderSM(panel, q) {
     <div class="question-label" id="sm-testo" style="margin-top:4px">${testoBase} ${hint}</div>
     <div class="options-grid" style="margin-top:4px">${opts.map((o,i)=>`<div class="option-item" id="sm-${i}" onclick="togSM(${i})"><div class="option-check" id="sm-check-${i}"></div><span>${o.t}</span></div>`).join('')}</div>
     <div class="feedback" id="feedback"></div>
-    <div class="actions" style="margin-top:4px"><button class="btn primary" onclick="checkSM()">verifica</button><button class="btn" id="next-btn" style="display:none" onclick="renderProduzioneQuiz()">prossima →</button></div>`;
+    <div class="actions" style="margin-top:4px"><button class="btn primary" onclick="checkSM()">verifica</button><button class="btn" id="next-btn" style="display:none" onclick="prossimaProduzioneQ()">prossima →</button></div>`;
   // Applica glossario in background
   evidenziaTermini(testoBase).then(html => {
     const el = document.getElementById('sm-testo');
@@ -3006,6 +3006,14 @@ function renderRiepilogo(panel) {
     html += '</div>';
   }
   panel.innerHTML = html;
+}
+
+function prossimaProduzioneQ() {
+  checked = false;
+  selectedOpts = {sel: null, multi: new Set()};
+  const bs = document.getElementById('btn-scheda-inline');
+  if (bs) bs.remove();
+  renderProduzioneQuiz();
 }
 
 function ricominciaMazzo() {
