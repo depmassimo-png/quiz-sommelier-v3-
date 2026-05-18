@@ -1,0 +1,3374 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Sommelier</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-primary: #ffffff; --bg-secondary: #f5f4f0; --bg-tertiary: #eeece7;
+    --text-primary: #1a1a18; --text-secondary: #5f5e5a; --text-tertiary: #888780;
+    --border-light: rgba(30,28,24,0.12); --border-mid: rgba(30,28,24,0.22);
+    --radius-md: 8px; --radius-lg: 12px;
+    --blue-bg: #E6F1FB; --blue-text: #0C447C; --blue-border: #378ADD;
+    --green-bg: #EAF3DE; --green-text: #27500A; --green-border: #3B6D11;
+    --yellow-bg: #FEF9EC; --yellow-text: #7A5C00; --yellow-border: #E6B800;
+    --red-bg: #FCEBEB; --red-text: #791F1F; --red-border: #A32D2D;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1e1d1b; --bg-secondary: #272522; --bg-tertiary: #302e2a;
+      --text-primary: #f0ede6; --text-secondary: #b4b2a9; --text-tertiary: #888780;
+      --border-light: rgba(240,237,230,0.1); --border-mid: rgba(240,237,230,0.2);
+      --blue-bg: #042C53; --blue-text: #B5D4F4; --blue-border: #378ADD;
+      --green-bg: #173404; --green-text: #C0DD97; --green-border: #3B6D11;
+      --yellow-bg: #3D3000; --yellow-text: #FFD84D; --yellow-border: #C99A00;
+      --red-bg: #501313; --red-text: #F7C1C1; --red-border: #A32D2D;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg-tertiary); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 1.25rem 0.75rem 3rem; }
+  header { text-align: center; margin-bottom: 1.25rem; }
+  header h1 { font-size: 20px; font-weight: 500; letter-spacing: -0.02em; }
+  header p { font-size: 13px; color: var(--text-tertiary); margin-top: 3px; }
+  .country-picker { display: flex; gap: 10px; margin-bottom: 1.25rem; width: 100%; max-width: 900px; }
+  .country-btn { flex: 1; padding: 10px 16px; border-radius: var(--radius-md); border: 0.5px solid var(--border-mid); background: var(--bg-primary); color: var(--text-secondary); font-size: 14px; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; -webkit-tap-highlight-color: transparent; }
+  .country-btn.active { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); font-weight: 500; }
+  .country-btn .flag { font-size: 18px; }
+  .app { display: grid; grid-template-columns: 260px 1fr; width: 100%; max-width: 900px; background: var(--bg-primary); border-radius: var(--radius-lg); border: 0.5px solid var(--border-light); overflow: hidden; min-height: 560px; }
+  .sidebar { background: var(--bg-secondary); padding: 1.25rem; border-right: 0.5px solid var(--border-light); display: flex; flex-direction: column; gap: 1rem; }
+  .score-area { margin-top: auto; }
+  @media (max-width: 620px) {
+    body { padding: 0.75rem 0.75rem 4rem; }
+    .country-picker { gap: 8px; margin-bottom: 0.75rem; }
+    .country-btn { font-size: 13px; padding: 8px 10px; }
+    .app { grid-template-columns: 1fr; min-height: unset; border-radius: var(--radius-md); }
+    .sidebar { border-right: none; border-bottom: 0.5px solid var(--border-light); padding: 0.875rem; gap: 0.75rem; }
+    .sidebar-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; align-items: end; }
+    .score-area { margin-top: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .score-area .btn-reset { width: auto; padding: 6px 10px; }
+    .main { padding: 0.875rem; gap: 0.875rem; }
+    .option-item { min-height: 44px; font-size: 14px; }
+    .region-option { min-height: 44px; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+    .btn { min-height: 44px; font-size: 14px; padding: 10px 18px; }
+  }
+  .sidebar-label { font-size: 10px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+  .tab-group { display: flex; gap: 3px; background: var(--bg-primary); border-radius: var(--radius-md); padding: 3px; border: 0.5px solid var(--border-light); }
+  .tab { flex: 1; padding: 6px 4px; border: none; background: transparent; font-size: 12px; font-family: inherit; color: var(--text-secondary); cursor: pointer; border-radius: 6px; min-height: 32px; }
+  .tab.active { background: var(--bg-secondary); color: var(--text-primary); font-weight: 500; }
+  select { width: 100%; padding: 8px 10px; font-size: 14px; font-family: inherit; border-radius: var(--radius-md); background: var(--bg-primary); color: var(--text-primary); border: 0.5px solid var(--border-mid); cursor: pointer; outline: none; min-height: 40px; }
+  select:focus { border-color: var(--blue-border); }
+  .score-bar { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+  .score-pills { display: flex; gap: 3px; flex-wrap: wrap; }
+  .pill { width: 8px; height: 8px; border-radius: 50%; background: var(--border-light); }
+  .pill.ok { background: #639922; } .pill.ko { background: #E24B4A; }
+  .btn-reset { width: 100%; padding: 7px 12px; border-radius: var(--radius-md); border: 0.5px solid var(--border-mid); background: transparent; color: var(--text-secondary); font-size: 12px; font-family: inherit; cursor: pointer; }
+  .main { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.1rem; background: var(--bg-primary); overflow-y: auto; }
+  .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-tertiary); font-size: 13px; gap: 8px; padding: 2rem 1rem; }
+  .empty-icon { font-size: 36px; }
+  .question-label { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+  .question-label strong { color: var(--text-primary); font-weight: 500; }
+  .section-title { font-size: 10px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
+  .options-grid { display: flex; flex-direction: column; gap: 5px; }
+  .section-block { display: flex; flex-direction: column; gap: 5px; }
+  .option-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 0.5px solid var(--border-light); border-radius: var(--radius-md); cursor: pointer; font-size: 13px; color: var(--text-primary); background: var(--bg-primary); user-select: none; -webkit-tap-highlight-color: transparent; }
+  .option-item.selected { border-color: var(--blue-border); background: var(--blue-bg); color: var(--blue-text); }
+  .option-item.correct { border-color: var(--green-border); background: var(--green-bg); color: var(--green-text); }
+  .option-item.missed  { border-color: var(--yellow-border); background: var(--yellow-bg); color: var(--yellow-text); }
+  .option-item.wrong   { border-color: var(--red-border); background: var(--red-bg); color: var(--red-text); }
+  .option-check { width: 18px; height: 18px; border-radius: 4px; border: 0.5px solid var(--border-mid); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+  .option-item.selected .option-check { background: var(--blue-border); border-color: var(--blue-border); color: white; }
+  .option-item.correct .option-check { background: var(--green-border); border-color: var(--green-border); color: white; }
+  .option-item.missed  .option-check { background: var(--yellow-border); border-color: var(--yellow-border); color: white; }
+  .option-item.wrong   .option-check { background: var(--red-border); border-color: var(--red-border); color: white; }
+  .bacca-group { display: flex; gap: 8px; }
+  .bacca-btn { flex: 1; padding: 9px 12px; border-radius: var(--radius-md); border: 0.5px solid var(--border-light); background: var(--bg-primary); color: var(--text-secondary); font-size: 13px; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .bacca-btn.selected { border-color: var(--blue-border); background: var(--blue-bg); color: var(--blue-text); font-weight: 500; }
+  .bacca-btn.correct { border-color: var(--green-border); background: var(--green-bg); color: var(--green-text); font-weight: 500; }
+  .bacca-btn.missed  { border-color: var(--yellow-border); background: var(--yellow-bg); color: var(--yellow-text); font-weight: 500; }
+  .bacca-btn.wrong   { border-color: var(--red-border); background: var(--red-bg); color: var(--red-text); }
+  .regions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .region-option { padding: 9px 10px; border: 0.5px solid var(--border-light); border-radius: var(--radius-md); cursor: pointer; font-size: 12px; text-align: center; background: var(--bg-primary); color: var(--text-primary); user-select: none; -webkit-tap-highlight-color: transparent; }
+  .region-option.selected { border-color: var(--blue-border); background: var(--blue-bg); color: var(--blue-text); font-weight: 500; }
+  .region-option.correct { border-color: var(--green-border); background: var(--green-bg); color: var(--green-text); font-weight: 500; }
+  .region-option.missed  { border-color: var(--yellow-border); background: var(--yellow-bg); color: var(--yellow-text); font-weight: 500; }
+  .region-option.wrong   { border-color: var(--red-border); background: var(--red-bg); color: var(--red-text); }
+  .feedback { font-size: 13px; padding: 9px 13px; border-radius: var(--radius-md); display: none; line-height: 1.5; }
+  .feedback.correct { background: var(--green-bg); color: var(--green-text); display: block; }
+  .feedback.wrong   { background: var(--red-bg); color: var(--red-text); display: block; }
+  .actions { display: flex; gap: 8px; align-items: center; }
+  .btn { padding: 9px 18px; border-radius: var(--radius-md); font-size: 13px; font-family: inherit; cursor: pointer; border: 0.5px solid var(--border-mid); background: transparent; color: var(--text-primary); -webkit-tap-highlight-color: transparent; }
+  .btn.primary { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); }
+  .prog-badge { font-size: 11px; color: var(--text-tertiary); margin-left: 6px; }
+</style>
+<style>
+/* ── Auth screens ─────────────────────────────── */
+.auth-wrap {
+  width:100%; max-width:420px; margin:auto;
+  display:flex; flex-direction:column; gap:1.25rem;
+}
+.auth-card {
+  background:var(--bg-primary); border-radius:var(--radius-lg);
+  border:0.5px solid var(--border-light); padding:2rem;
+  display:flex; flex-direction:column; gap:1rem;
+}
+.auth-card h2 { font-size:18px; font-weight:500; letter-spacing:-.02em; }
+.auth-card p  { font-size:13px; color:var(--text-secondary); }
+.field { display:flex; flex-direction:column; gap:5px; }
+.field label { font-size:11px; font-weight:500; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.07em; }
+.field input {
+  padding:9px 12px; font-size:14px; font-family:inherit;
+  border-radius:var(--radius-md); background:var(--bg-primary);
+  color:var(--text-primary); border:0.5px solid var(--border-mid);
+  outline:none;
+}
+.field input:focus { border-color:var(--blue-border); }
+.auth-err { font-size:13px; color:var(--red-text); background:var(--red-bg); padding:8px 12px; border-radius:var(--radius-md); display:none; }
+.auth-ok  { font-size:13px; color:var(--green-text); background:var(--green-bg); padding:8px 12px; border-radius:var(--radius-md); display:none; }
+.auth-link { font-size:13px; color:var(--text-secondary); text-align:center; }
+.auth-link a { color:var(--blue-text); cursor:pointer; text-decoration:none; }
+.btn-full { width:100%; padding:10px; border-radius:var(--radius-md); font-size:14px; font-family:inherit; cursor:pointer; border:none; background:var(--text-primary); color:var(--bg-primary); font-weight:500; }
+.btn-full:disabled { opacity:.5; cursor:default; }
+
+/* ── Top bar ──────────────────────────────────── */
+.topbar {
+  width:100%; max-width:900px; display:flex; align-items:center;
+  justify-content:space-between; margin-bottom:.75rem;
+  font-size:13px; color:var(--text-secondary);
+}
+.topbar-user { display:flex; align-items:center; gap:10px; }
+.topbar-badge {
+  font-size:11px; font-weight:500; padding:3px 8px;
+  border-radius:20px; background:var(--bg-secondary);
+  border:0.5px solid var(--border-light);
+}
+.topbar-badge.admin { background:var(--blue-bg); color:var(--blue-text); border-color:var(--blue-border); }
+.topbar-badge.attesa { background:var(--yellow-bg); color:var(--yellow-text); border-color:var(--yellow-border); }
+.btn-sm { padding:5px 10px; border-radius:var(--radius-md); font-size:12px; font-family:inherit; cursor:pointer; border:0.5px solid var(--border-mid); background:transparent; color:var(--text-secondary); }
+
+/* ── Admin panel ──────────────────────────────── */
+.admin-panel {
+  width:100%; max-width:900px; background:var(--bg-primary);
+  border-radius:var(--radius-lg); border:0.5px solid var(--border-light);
+  overflow:hidden;
+}
+.admin-header {
+  padding:1rem 1.5rem; background:var(--bg-secondary);
+  border-bottom:0.5px solid var(--border-light);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.admin-header h2 { font-size:16px; font-weight:500; }
+.admin-tabs { display:flex; gap:4px; }
+.admin-tab {
+  padding:6px 14px; border-radius:var(--radius-md); font-size:13px;
+  font-family:inherit; cursor:pointer; border:0.5px solid var(--border-light);
+  background:transparent; color:var(--text-secondary);
+}
+.admin-tab.active { background:var(--text-primary); color:var(--bg-primary); border-color:var(--text-primary); }
+.admin-body { padding:1.5rem; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; font-size:10px; font-weight:500; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.07em; padding:6px 8px; border-bottom:0.5px solid var(--border-light); }
+td { padding:8px; border-bottom:0.5px solid var(--border-light); color:var(--text-primary); }
+tr:last-child td { border-bottom:none; }
+.badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:500; }
+.badge.approvato { background:var(--green-bg); color:var(--green-text); }
+.badge.in_attesa { background:var(--yellow-bg); color:var(--yellow-text); }
+.badge.bloccato  { background:var(--red-bg); color:var(--red-text); }
+
+/* ── Progresso personale ──────────────────────── */
+.progress-wrap { width:100%; max-width:900px; }
+.progress-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:.75rem; margin-top:1rem; }
+.progress-card {
+  background:var(--bg-primary); border-radius:var(--radius-md);
+  border:0.5px solid var(--border-light); padding:1rem;
+}
+.progress-card h4 { font-size:12px; font-weight:500; margin-bottom:.5rem; }
+.progress-bar-bg { height:6px; background:var(--bg-tertiary); border-radius:3px; overflow:hidden; }
+.progress-bar    { height:6px; background:var(--green-border); border-radius:3px; transition:width .3s; }
+.progress-pct    { font-size:11px; color:var(--text-tertiary); margin-top:4px; }
+
+/* ── Attesa approvazione ──────────────────────── */
+.attesa-screen {
+  width:100%; max-width:500px; margin:auto; text-align:center;
+  background:var(--bg-primary); border-radius:var(--radius-lg);
+  border:0.5px solid var(--border-light); padding:2.5rem 2rem;
+}
+.attesa-screen h2 { font-size:18px; font-weight:500; margin-bottom:.75rem; }
+.attesa-screen p  { font-size:13px; color:var(--text-secondary); line-height:1.6; }
+/* ── Modalità esame ───────────────────────────── */
+.esame-wrap { width:100%; max-width:700px; margin:0 auto; }
+.esame-header {
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--bg-primary); border-radius:var(--radius-lg);
+  border:0.5px solid var(--border-light); padding:1rem 1.5rem;
+  margin-bottom:1rem; flex-wrap:wrap; gap:.75rem;
+}
+.timer-display { font-size:28px; font-weight:600; font-variant-numeric:tabular-nums; color:var(--text-primary); letter-spacing:-.02em; }
+.timer-display.warning { color:var(--yellow-text); }
+.timer-display.danger  { color:var(--red-text); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.esame-progress { height:4px; background:var(--bg-tertiary); border-radius:2px; margin-bottom:1rem; overflow:hidden; }
+.esame-progress-bar { height:4px; background:var(--blue-border); border-radius:2px; transition:width .3s; }
+.setup-card { background:var(--bg-primary); border-radius:var(--radius-lg); border:0.5px solid var(--border-light); padding:2rem; max-width:480px; margin:0 auto; }
+.setup-card h2 { font-size:18px; font-weight:500; margin-bottom:1.5rem; }
+.setup-row { display:flex; align-items:center; justify-content:space-between; padding:.75rem 0; border-bottom:0.5px solid var(--border-light); gap:1rem; }
+.setup-row:last-of-type { border-bottom:none; }
+.setup-row label { font-size:14px; color:var(--text-primary); }
+.setup-row span { font-size:12px; color:var(--text-tertiary); }
+.setup-row input[type=range] { width:120px; }
+.setup-val { font-size:14px; font-weight:500; min-width:60px; text-align:right; }
+
+/* ── Mobile responsive ────────────────────────── */
+@media (max-width: 600px) {
+
+  body { padding: 0 !important; }
+
+  /* Topbar: due righe */
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 8px 12px 4px;
+    margin-bottom: .5rem !important;
+  }
+  .topbar > span:first-child { font-size: 17px; }
+  .topbar-user {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    width: 100%;
+  }
+  .topbar-badge { font-size: 10px; padding: 2px 6px; }
+  .btn-sm { font-size: 11px; padding: 4px 8px; }
+
+  /* Country picker: scrollabile orizzontalmente senza overflow visibile */
+  .country-picker {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px !important;
+    padding: 0 12px 6px;
+    margin-bottom: .5rem !important;
+  }
+  .country-picker::-webkit-scrollbar { display: none; }
+  .country-btn {
+    flex-shrink: 0;
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  /* App layout: sidebar sopra, main sotto */
+  .app {
+    flex-direction: column !important;
+    padding: 0 8px !important;
+    gap: 8px !important;
+  }
+  .sidebar {
+    width: 100% !important;
+    min-width: unset !important;
+    max-width: unset !important;
+    border-radius: var(--radius-md) !important;
+    padding: 10px 12px !important;
+  }
+  .sidebar-controls {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .sidebar-controls > div { flex: 1; min-width: 120px; }
+  .score-area { flex-direction: row; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .score-bar { flex: 1; }
+
+  .main {
+    width: 100% !important;
+    min-height: 300px;
+    padding: 1rem !important;
+  }
+
+  /* Tabs più compatti */
+  .tab-group { gap: 4px; }
+  .tab { font-size: 12px; padding: 5px 8px; }
+
+  /* Opzioni quiz */
+  .options-grid { grid-template-columns: 1fr !important; }
+  .bacca-group { flex-direction: column; gap: 8px; }
+  .bacca-btn { width: 100%; }
+
+  /* Esame/Competizione header */
+  .esame-header { padding: .75rem 1rem; gap: .5rem; }
+  .esame-wrap { padding: 0 8px; }
+  .timer-display { font-size: 22px; }
+
+  /* Auth screens */
+  .auth-wrap { padding: 1rem; }
+  .auth-card { padding: 1.25rem; }
+
+  /* Admin tabs scroll */
+  .admin-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px; }
+  .admin-tabs::-webkit-scrollbar { display: none; }
+  .admin-tab { flex-shrink: 0; font-size: 12px; padding: 5px 10px; }
+
+  /* Tabelle admin: font più piccolo */
+  table { font-size: 11px; }
+  th, td { padding: 6px 6px !important; }
+
+  /* Progressi grid */
+  .progress-grid { grid-template-columns: 1fr 1fr !important; }
+
+  /* Setup esame */
+  .setup-card { padding: 1.25rem; }
+  .setup-row { flex-wrap: wrap; }
+
+  /* Footer versione */
+  .topbar > span:first-child ~ * { font-size: 11px; }
+
+  /* Overflow globale: mai scrolling orizzontale */
+  #screen-app, #screen-progressi, #screen-admin, #screen-ripassa,
+  #screen-setup-esame, #screen-esame, #screen-competizioni,
+  #screen-classifica { overflow-x: hidden; }
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREENS (hidden by default) -->
+<div id="screen-login" style="display:none; width:100%; padding-top:2rem;">
+  <div class="auth-wrap">
+    <header style="text-align:center">
+      <h1>🍷 Quiz Sommelier</h1>
+      <p>Accedi al tuo account</p>
+    </header>
+    <div class="auth-card">
+      <h2>Accedi</h2>
+      <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="la-tua@email.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="login-pwd" placeholder="••••••••"></div>
+      <div class="auth-err" id="login-err"></div>
+      <button class="btn-full" onclick="doLogin()">Accedi</button>
+      <div class="auth-link">Non hai un account? <a onclick="showScreen('register')">Registrati</a></div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-register" style="display:none; width:100%; padding-top:2rem;">
+  <div class="auth-wrap">
+    <header style="text-align:center">
+      <h1>🍷 Quiz Sommelier</h1>
+      <p>Crea il tuo account</p>
+    </header>
+    <div class="auth-card">
+      <h2>Registrati</h2>
+      <div class="field"><label>Username</label><input type="text" id="reg-username" placeholder="mario.rossi"></div>
+      <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="la-tua@email.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="reg-pwd" placeholder="min. 6 caratteri"></div>
+      <div class="field"><label>Codice classe</label><input type="text" id="reg-code" placeholder="SOMMELIER2026"></div>
+      <div class="auth-err" id="reg-err"></div>
+      <div class="auth-ok"  id="reg-ok"></div>
+      <button class="btn-full" id="reg-btn" onclick="doRegister()">Registrati</button>
+      <div class="auth-link">Hai già un account? <a onclick="showScreen('login')">Accedi</a></div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-attesa" style="display:none; width:100%; padding-top:3rem;">
+  <div class="attesa-screen">
+    <div style="font-size:40px;margin-bottom:1rem">⏳</div>
+    <h2>Account in attesa di approvazione</h2>
+    <p>La tua email è stata verificata. Il tuo account è in attesa di approvazione da parte del docente. Riceverai accesso a breve.</p>
+    <button class="btn-sm" style="margin-top:1.5rem" onclick="doLogout()">Esci</button>
+  </div>
+</div>
+
+<!-- MAIN APP (hidden until logged in) -->
+<div id="screen-app" style="display:none; width:100%;">
+  <!-- Top bar -->
+  <div class="topbar" style="max-width:900px; margin:0 auto .75rem;">
+    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.46</span></span>
+    <div class="topbar-user">
+      <span id="topbar-username" style="font-size:13px;"></span>
+      <span id="topbar-badge" class="topbar-badge"></span>
+      <button class="btn-sm" onclick="showProgressi()">📊 Progressi</button>
+      <button class="btn-sm" onclick="showRipassa()" id="btn-ripassa">🔁 Ripassa <span id="badge-errori" style="display:none;background:var(--red-text);color:white;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:2px"></span></button>
+      <button class="btn-sm" id="btn-admin" style="display:none" onclick="showAdmin()">⚙️ Admin</button>
+      <button class="btn-sm" onclick="doLogout()">Esci</button>
+    </div>
+  </div>
+
+  <!-- Country picker -->
+  <div class="country-picker" style="max-width:900px; margin:0 auto .75rem;">
+    <button class="country-btn active" id="btn-italia" onclick="setSection('italia')"><span class="flag">🇮🇹</span> Italia</button>
+    <button class="country-btn" id="btn-francia" onclick="setSection('francia')"><span class="flag">🇫🇷</span> Francia</button>
+    <button class="country-btn" id="btn-produzione" onclick="setSection('produzione')"><span class="flag">📋</span> Domande</button>
+    <button class="country-btn" id="btn-esame" onclick="showSetupEsame()"><span class="flag">⏱</span> Esame</button>
+    <button class="country-btn" id="btn-competizione" onclick="showCompetizioni()"><span class="flag">🏆</span> Gara <span id="badge-comp" style="display:none;background:var(--red-text);color:white;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:2px">!</span></button>
+  </div>
+
+  <!-- Quiz app -->
+  <div class="app" style="max-width:900px; margin:0 auto;">
+    <div class="sidebar">
+      <div class="sidebar-controls">
+        <div>
+          <div class="sidebar-label">modalità</div>
+          <div class="tab-group" id="tab-group"></div>
+        </div>
+        <div>
+          <div class="sidebar-label">seleziona</div>
+          <select id="main-select" onchange="onSelectChange()"><option value="">— scegli —</option></select>
+        </div>
+      </div>
+      <div id="areale-wrap" style="display:none">
+        <div class="sidebar-label">areale</div>
+        <select id="areale-select" onchange="onArealeChange()"><option value="">— scegli areale —</option></select>
+      </div>
+      <div class="score-area">
+        <div class="score-bar"><span id="score-text">0 / 0</span><div class="score-pills" id="score-pills"></div></div>
+        <button class="btn-reset" onclick="resetScore()">azzera punteggio</button>
+      </div>
+    </div>
+    <div class="main" id="main-panel">
+      <div class="empty-state"><div class="empty-icon">⏳</div>Caricamento…</div>
+    </div>
+  </div>
+  <div style="max-width:900px; margin:.5rem auto 0; text-align:right;">
+    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.46</span>
+  </div>
+</div>
+
+<!-- SETUP ESAME -->
+<div id="screen-setup-esame" style="display:none; width:100%; padding-top:1rem;">
+  <div style="max-width:900px; margin:0 auto;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+      <h2 style="font-size:18px; font-weight:500;">⏱ Modalità Esame</h2>
+      <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
+    </div>
+    <div class="setup-card">
+      <h2>Configura la sessione d'esame</h2>
+      <div class="setup-row">
+        <div><label>Durata</label><br><span>Minuti totali</span></div>
+        <div style="display:flex; align-items:center; gap:.75rem;">
+          <input type="range" min="5" max="120" step="5" value="30" id="esame-durata-slider" oninput="aggiornaSetupEsame()">
+          <span class="setup-val" id="esame-durata-val">30 min</span>
+        </div>
+      </div>
+      <div class="setup-row">
+        <div><label>Domande</label><br><span>1 ogni 30 secondi</span></div>
+        <span class="setup-val" id="esame-ndom-val">60 domande</span>
+      </div>
+      <div class="setup-row">
+        <div><label>Tipologia</label><br><span>Mix automatico</span></div>
+        <span style="font-size:13px; color:var(--text-secondary)">Teoriche + Geografiche</span>
+      </div>
+      <div style="margin-top:1.5rem; display:flex; gap:.75rem; justify-content:flex-end;">
+        <button class="btn" onclick="showApp()">Annulla</button>
+        <button class="btn primary" onclick="avviaEsame()">▶ Inizia esame</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALITÀ ESAME ATTIVA -->
+<div id="screen-esame" style="display:none; width:100%;">
+  <div class="esame-wrap">
+    <div class="esame-header">
+      <div>
+        <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.07em; margin-bottom:2px">Tempo rimanente</div>
+        <div class="timer-display" id="timer-display">30:00</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.07em; margin-bottom:2px">Domanda</div>
+        <div style="font-size:20px; font-weight:600;" id="esame-counter">1 / 60</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.07em; margin-bottom:2px">Punteggio</div>
+        <div style="font-size:20px; font-weight:600;" id="esame-score">0 / 0</div>
+      </div>
+    </div>
+    <div class="esame-progress">
+      <div class="esame-progress-bar" id="esame-progress-bar" style="width:0%"></div>
+    </div>
+    <div style="background:var(--bg-primary); border-radius:var(--radius-lg); border:0.5px solid var(--border-light); padding:1.5rem;" id="esame-panel">
+    </div>
+    <div style="margin-top:.75rem; text-align:right;">
+      <button class="btn-sm" style="color:var(--red-text);border-color:var(--red-border)" onclick="terminaEsame(true)">■ Termina esame</button>
+    </div>
+  </div>
+</div>
+
+<!-- RIEPILOGO ESAME -->
+<div id="screen-riepilogo-esame" style="display:none; width:100%;">
+  <div style="max-width:700px; margin:0 auto;" id="riepilogo-esame-content"></div>
+</div>
+
+<!-- COMPETIZIONE INVITO -->
+<div id="screen-comp-invito" style="display:none; width:100%; padding-top:2rem;">
+  <div style="max-width:500px; margin:0 auto; text-align:center;">
+    <div class="auth-card">
+      <div style="font-size:48px; margin-bottom:.5rem">🏆</div>
+      <h2 id="comp-invito-nome" style="font-size:20px; font-weight:500; margin-bottom:.5rem"></h2>
+      <p id="comp-invito-desc" style="font-size:13px; color:var(--text-secondary); margin-bottom:1.5rem"></p>
+      <div style="display:flex; gap:.75rem; justify-content:center;">
+        <button class="btn" onclick="rifiutaCompetizione()">Più tardi</button>
+        <button class="btn primary" onclick="accettaCompetizione()">▶ Partecipa ora</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPETIZIONE QUIZ ATTIVO -->
+<div id="screen-comp-quiz" style="display:none; width:100%;">
+  <div class="esame-wrap">
+    <div class="esame-header">
+      <div>
+        <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">🏆 <span id="comp-quiz-nome"></span></div>
+        <div class="timer-display" id="comp-timer-display">--:--</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Domanda</div>
+        <div style="font-size:20px;font-weight:600;" id="comp-counter">1 / 20</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Punteggio</div>
+        <div style="font-size:20px;font-weight:600;" id="comp-score">0 / 0</div>
+      </div>
+    </div>
+    <div class="esame-progress">
+      <div class="esame-progress-bar" id="comp-progress-bar" style="width:0%"></div>
+    </div>
+    <div style="background:var(--bg-primary);border-radius:var(--radius-lg);border:0.5px solid var(--border-light);padding:1.5rem;" id="comp-panel"></div>
+  </div>
+</div>
+
+<!-- CLASSIFICA COMPETIZIONE -->
+<div id="screen-classifica" style="display:none; width:100%;">
+  <div style="max-width:700px; margin:0 auto;" id="classifica-content"></div>
+</div>
+
+<!-- LISTA COMPETIZIONI -->
+<div id="screen-competizioni" style="display:none; width:100%;">
+  <div style="max-width:900px; margin:0 auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
+      <h2 style="font-size:18px;font-weight:500;">🏆 Competizioni</h2>
+      <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
+    </div>
+    <div id="competizioni-content">
+      <div class="empty-state">⏳ Caricamento…</div>
+    </div>
+  </div>
+</div>
+
+<!-- RIPASSA -->
+<div id="screen-ripassa" style="display:none; width:100%;">
+  <div style="max-width:900px; margin:0 auto;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:.5rem;">
+      <h2 style="font-size:18px; font-weight:500;">🔁 Ripassa gli errori</h2>
+      <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+        <button class="btn-sm" style="color:var(--red-text);border-color:var(--red-border)" onclick="azzeraStatistiche()">🗑 Azzera storico</button>
+        <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
+      </div>
+    </div>
+    <!-- Tabs -->
+    <div style="display:flex; gap:4px; margin-bottom:1rem;">
+      <button class="admin-tab active" id="rtab-sessione" onclick="ripassaTab('sessione')">Sessione corrente</button>
+      <button class="admin-tab" id="rtab-storico" onclick="ripassaTab('storico')">Storico errori</button>
+    </div>
+    <div id="ripassa-content" style="background:var(--bg-primary); border-radius:var(--radius-lg); border:0.5px solid var(--border-light); padding:1.5rem;">
+      <div class="empty-state">⏳ Caricamento…</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESSI -->
+<div id="screen-progressi" style="display:none; width:100%;">
+  <div class="progress-wrap" style="max-width:900px; margin:0 auto;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+      <h2 style="font-size:18px; font-weight:500;">📊 I miei progressi</h2>
+      <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
+    </div>
+    <div id="progressi-content">
+      <div class="empty-state" style="background:var(--bg-primary);border-radius:var(--radius-lg);border:0.5px solid var(--border-light);padding:2rem;">
+        <div class="empty-icon">⏳</div>Caricamento…
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="screen-admin" style="display:none; width:100%;">
+  <div style="max-width:900px; margin:0 auto;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+      <h2 style="font-size:18px; font-weight:500;">⚙️ Pannello Admin</h2>
+      <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
+    </div>
+    <div class="admin-panel">
+      <div class="admin-header">
+        <div class="admin-tabs">
+          <button class="admin-tab active" onclick="adminTab('utenti')">Utenti</button>
+          <button class="admin-tab" onclick="adminTab('statistiche')">Statistiche</button>
+          <button class="admin-tab" onclick="adminTab('errori')">Errori frequenti</button>
+          <button class="admin-tab" onclick="adminTab('competizioni')">Competizioni</button>
+        </div>
+      </div>
+      <div class="admin-body" id="admin-body">
+        <div class="empty-state">⏳ Caricamento…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const APP_VERSION = '2.46';
+const SUPABASE_URL = 'https://ypqgmwcrnhxfdfkfjivc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcWdtd2Nybmh4ZmRma2ZqaXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3MTcsImV4cCI6MjA5NDM5OTcxN30.gOVk3CjeT20MeZORLUFvL4Jd1FXJJSSRczUmUUANxXY';
+const CODICE_CLASSE = 'SOMMELIER2026';
+
+window.onerror = function(msg, src, line, col, err) {
+  console.error('GLOBAL ERROR:', msg, 'at', src, 'line', line);
+  return false;
+};
+window.onunhandledrejection = function(e) {
+  console.error('UNHANDLED PROMISE:', e.reason);
+};
+
+// ── Supabase helpers ────────────────────────────
+let currentUser = null;
+let currentProfile = null;
+let authToken = null;
+
+function sbHeaders(token) {
+  return {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + (token || SUPABASE_KEY),
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+  };
+}
+
+async function sbGet(path, token) {
+  const r = await fetch(SUPABASE_URL + path, {headers: sbHeaders(token)});
+  return r.json();
+}
+
+async function sbPost(path, body, token) {
+  const r = await fetch(SUPABASE_URL + path, {
+    method:'POST', headers: sbHeaders(token), body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+async function sbPatch(path, body, token) {
+  const r = await fetch(SUPABASE_URL + path, {
+    method:'PATCH', headers: {...sbHeaders(token), 'Prefer':'return=representation'},
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+// ── Auth ────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pwd   = document.getElementById('login-pwd').value;
+  const err   = document.getElementById('login-err');
+  err.style.display = 'none';
+
+  const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+    method:'POST', headers: {'apikey': SUPABASE_KEY, 'Content-Type':'application/json'},
+    body: JSON.stringify({email, password:pwd})
+  });
+  const data = await res.json();
+
+  if (data.error || !data.access_token) {
+    err.textContent = data.error_description || 'Email o password non corretti.';
+    err.style.display = 'block'; return;
+  }
+
+  authToken = data.access_token;
+  currentUser = data.user;
+  await loadProfile();
+}
+
+async function doRegister() {
+  const username = document.getElementById('reg-username').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const pwd      = document.getElementById('reg-pwd').value;
+  const code     = document.getElementById('reg-code').value.trim().toUpperCase();
+  const err      = document.getElementById('reg-err');
+  const ok       = document.getElementById('reg-ok');
+  const btn      = document.getElementById('reg-btn');
+  err.style.display = 'none'; ok.style.display = 'none';
+
+  if (!username || !email || !pwd || !code) {
+    err.textContent = 'Compila tutti i campi.'; err.style.display='block'; return;
+  }
+  if (code !== CODICE_CLASSE) {
+    err.textContent = 'Codice classe non valido.'; err.style.display='block'; return;
+  }
+  if (pwd.length < 6) {
+    err.textContent = 'La password deve essere di almeno 6 caratteri.'; err.style.display='block'; return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Registrazione…';
+
+  const res = await fetch(SUPABASE_URL + '/auth/v1/signup', {
+    method:'POST', headers: {'apikey': SUPABASE_KEY, 'Content-Type':'application/json'},
+    body: JSON.stringify({email, password:pwd, data:{username, ruolo:'studente'}})
+  });
+  const data = await res.json();
+  btn.disabled = false; btn.textContent = 'Registrati';
+
+  if (data.error) {
+    err.textContent = data.error_description || data.msg || 'Errore nella registrazione.';
+    err.style.display='block'; return;
+  }
+
+  ok.textContent = '✓ Registrazione avvenuta! Controlla la tua email per confermare il tuo indirizzo, poi attendi l&#39;approvazione del docente.';
+  ok.style.display = 'block';
+}
+
+async function doLogout() {
+  if (authToken) {
+    await fetch(SUPABASE_URL + '/auth/v1/logout', {
+      method:'POST', headers: {'apikey': SUPABASE_KEY, 'Authorization':'Bearer '+authToken}
+    });
+  }
+  authToken = null; currentUser = null; currentProfile = null;
+  showScreen('login');
+}
+
+async function loadProfile() {
+  const profiles = await sbGet('/rest/v1/profiles?id=eq.' + currentUser.id, authToken);
+
+  // Se il profilo non esiste (es. dopo conferma email), crealo ora
+  if (!profiles || !profiles.length) {
+    const username = currentUser.user_metadata?.username ||
+                     currentUser.email?.split('@')[0] || 'utente';
+    await sbPost('/rest/v1/profiles', {
+      id: currentUser.id,
+      username: username,
+      ruolo: 'studente',
+      stato: 'in_attesa'
+    }, authToken);
+    showScreen('attesa');
+    return;
+  }
+
+  currentProfile = profiles[0];
+
+  // Aggiorna ultimo accesso
+  await sbPatch('/rest/v1/profiles?id=eq.' + currentUser.id,
+    {ultimo_accesso: new Date().toISOString()}, authToken);
+
+  if (currentProfile.stato === 'in_attesa') {
+    showScreen('attesa'); return;
+  }
+  if (currentProfile.stato === 'bloccato') {
+    document.getElementById('login-err').textContent = 'Il tuo account è stato bloccato. Contatta il docente.';
+    document.getElementById('login-err').style.display='block';
+    showScreen('login'); return;
+  }
+
+  // Approvato — entra nell'app
+  initApp();
+}
+
+function initApp() {
+  document.getElementById('topbar-username').textContent = currentProfile.username;
+  const badge = document.getElementById('topbar-badge');
+  // Forza nascosto il pulsante admin per tutti
+  document.getElementById('btn-admin').style.display = 'none';
+  if (currentProfile.ruolo === 'admin') {
+    badge.textContent = 'Admin'; badge.className = 'topbar-badge admin';
+    document.getElementById('btn-admin').style.display = '';
+  } else {
+    badge.textContent = 'Studente'; badge.className = 'topbar-badge';
+  }
+  showScreen('app');
+  // Avvia caricamento dati geo
+  document.getElementById('main-panel').innerHTML =
+    '<div class="empty-state"><div class="empty-icon">⏳</div>Caricamento dati…</div>';
+  loadGeoSupabase().then(() => {
+    DB = DB_ITALIA; country='italia';
+    buildIndexes(); renderTabs(); populateSelect();
+    document.getElementById('main-panel').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">🍇</div>Seleziona una voce a sinistra per iniziare</div>';
+    // Carica conteggio errori storici per badge
+    Promise.all([
+      sbGet('/rest/v1/risposte?user_id=eq.'+currentUser.id+'&corretta=eq.false&select=domanda_id', authToken),
+      sbGet('/rest/v1/risposte_geo?user_id=eq.'+currentUser.id+'&corretta=eq.false&select=tipo,paese,entita', authToken)
+    ]).then(([r, rg]) => {
+      const uniqDom = new Set((r||[]).map(x=>x.domanda_id));
+      const uniqGeo = new Set((rg||[]).map(x=>x.tipo+'|'+x.paese+'|'+x.entita));
+      aggiornaBadgeErrori(uniqDom.size + uniqGeo.size);
+    });
+    // Controlla competizioni attive
+    checkCompetizioni();
+  });
+}
+
+function showScreen(name) {
+  ['login','register','attesa','app','progressi','admin','ripassa','setup-esame','esame','riepilogo-esame','comp-invito','comp-quiz','classifica','competizioni'].forEach(s =>
+    document.getElementById('screen-'+s).style.display = s===name ? '' : 'none'
+  );
+  document.body.style.paddingTop = ['login','register','attesa'].includes(name) ? '2rem' : '';
+}
+
+function showApp() {
+  showScreen('app');
+  const btnEsame = document.getElementById('btn-esame');
+  const btnComp  = document.getElementById('btn-competizione');
+  if (btnEsame) btnEsame.classList.remove('active');
+  if (btnComp)  btnComp.classList.remove('active');
+}
+function showProgressi() { showScreen('progressi'); loadProgressi(); }
+// ── Override feedback per salvare su Supabase ───
+let esameDurata = 30;      // minuti
+let esameNDom   = 60;      // domande totali
+let esameQueue  = [];      // coda domande miste
+let esameIndex  = 0;
+let esameOk     = 0;
+let esameKo     = 0;
+let esameTimer  = null;    // intervallo timer
+let esameSecondi = 0;      // secondi rimanenti
+let esameErrori = [];      // domande sbagliate per riepilogo
+let esameRisposte = [];    // tutte le risposte per riepilogo
+
+function showSetupEsame() {
+  ['italia','francia','produzione','esame','competizione'].forEach(x => {
+    const b = document.getElementById('btn-'+x);
+    if (b) b.classList.toggle('active', x==='esame');
+  });
+  showScreen('setup-esame');
+  aggiornaSetupEsame();
+}
+
+function aggiornaSetupEsame() {
+  const min = parseInt(document.getElementById('esame-durata-slider').value);
+  esameDurata = min;
+  esameNDom = min * 2; // 1 domanda ogni 30 secondi
+  document.getElementById('esame-durata-val').textContent = min + ' min';
+  document.getElementById('esame-ndom-val').textContent = esameNDom + ' domande';
+}
+
+async function avviaEsame() {
+  showScreen('esame');
+  esameIndex = 0; esameOk = 0; esameKo = 0;
+  esameErrori = []; esameRisposte = [];
+  esameSecondi = esameDurata * 60;
+
+  // Costruisce coda mista con distribuzione uniforme
+  await Promise.all([
+    supabaseLoaded ? Promise.resolve() : loadDomandeSupabase(),
+    geoLoaded ? Promise.resolve() : loadGeoSupabase()
+  ]);
+
+  const nTeo = Math.round(esameNDom * 0.6);
+  const nGeo = esameNDom - nTeo;
+
+  // ── Domande teoriche: distribuzione uniforme per categoria ──
+  const categorie = Object.entries(DB_PRODUZIONE).filter(([k]) => !k.startsWith('🔁'));
+  const nCat = categorie.length;
+  const perCat = Math.ceil(nTeo / nCat);
+  let allTeo = [];
+  for (const [, cat] of categorie) {
+    const shuffled = shuffle([...cat.domande].map(d=>({...d, _src:'teorica'})));
+    allTeo.push(...shuffled.slice(0, perCat));
+  }
+  const domTeo = shuffle(allTeo).slice(0, nTeo);
+
+  // ── Domande geografiche: distribuzione per tipo e paese ──
+  // Tipi: vitigno_it, vitigno_fr, area_it, area_fr → nGeo/4 per tipo
+  const nPerTipo = Math.ceil(nGeo / 4);
+  let allGeo = [];
+
+  for (const [paese, db] of [['italia', DB_ITALIA], ['francia', DB_FRANCIA]]) {
+    if (!db) continue;
+    // Vitigni
+    const vitigniList = shuffle(Object.keys(db.vitigni || {}));
+    allGeo.push(...vitigniList.slice(0, nPerTipo).map(v => ({
+      _src:'geo', _tipo:'vitigno', _paese:paese, _entita:v
+    })));
+    // Regioni (per domande su DOCG/areali)
+    const regioniList = shuffle(Object.keys(db.aree || {}).filter(r => {
+      const rd = db.aree[r];
+      const sottozone = paese === 'italia'
+        ? (rd.class || rd.docg || [])
+        : Object.keys(rd.areali || {});
+      return sottozone.length > 0;
+    }));
+    allGeo.push(...regioniList.slice(0, nPerTipo).map(r => ({
+      _src:'geo', _tipo:'area', _paese:paese, _entita:r
+    })));
+  }
+  const domGeo = shuffle(allGeo).slice(0, nGeo);
+
+  // Mescola teoriche e geografiche alternando i tipi
+  const merged = [];
+  const maxLen = Math.max(domTeo.length, domGeo.length);
+  for (let i = 0; i < maxLen; i++) {
+    if (i < domTeo.length) merged.push(domTeo[i]);
+    if (i < domGeo.length) merged.push(domGeo[i]);
+  }
+  esameQueue = merged.slice(0, esameNDom);
+  esameNDom = esameQueue.length;
+
+  // Avvia timer
+  aggiornaTimerDisplay();
+  esameTimer = setInterval(() => {
+    esameSecondi--;
+    aggiornaTimerDisplay();
+    if (esameSecondi <= 0) terminaEsame(false);
+  }, 1000);
+
+  renderEsameDomanda();
+}
+
+function aggiornaTimerDisplay() {
+  const min = Math.floor(esameSecondi / 60);
+  const sec = esameSecondi % 60;
+  const txt = min + ':' + String(sec).padStart(2,'0');
+  const el = document.getElementById('timer-display');
+  if (!el) return;
+  el.textContent = txt;
+  el.className = 'timer-display' +
+    (esameSecondi <= 60 ? ' danger' : esameSecondi <= 180 ? ' warning' : '');
+}
+
+function renderEsameDomanda() {
+  if (esameIndex >= esameQueue.length) { terminaEsame(false); return; }
+  const q = esameQueue[esameIndex];
+  const panel = document.getElementById('esame-panel');
+
+  // Aggiorna progress
+  const pct = Math.round(100 * esameIndex / esameNDom);
+  document.getElementById('esame-progress-bar').style.width = pct + '%';
+  document.getElementById('esame-counter').textContent = (esameIndex+1) + ' / ' + esameNDom;
+  document.getElementById('esame-score').textContent = esameOk + ' / ' + (esameOk+esameKo);
+
+  if (q._src === 'teorica') {
+    renderEsameTeorica(panel, q);
+  } else {
+    renderEsameGeo(panel, q);
+  }
+}
+
+function renderEsameTeorica(panel, q) {
+  if (q.tipo === 'vf') {
+    panel.innerHTML = `
+      <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q.categoria || 'Domanda teorica'} — Vero o Falso</div>
+      <div style="font-size:15px; line-height:1.6; margin-bottom:1.25rem">${q.d}</div>
+      <div class="bacca-group">
+        <button class="bacca-btn" id="evf-V" onclick="rispostaEsameVF(true)">✓ Vero</button>
+        <button class="bacca-btn" id="evf-F" onclick="rispostaEsameVF(false)">✗ Falso</button>
+      </div>
+      <div id="esame-feedback" style="margin-top:.75rem"></div>`;
+  } else {
+    const opts = shuffle(q.ops.map(o=>({...o})));
+    q._optsShuffled = opts;
+    panel.innerHTML = `
+      <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q.categoria || 'Domanda teorica'} — Scelta multipla</div>
+      <div style="font-size:15px; line-height:1.6; margin-bottom:1.25rem">${q.d}</div>
+      <div class="options-grid">
+        ${opts.map((o,i)=>`<div class="option-item" id="esm-${i}" onclick="togEsameSM(${i})"><div class="option-check" id="esm-check-${i}"></div><span>${o.t}</span></div>`).join('')}
+      </div>
+      <div id="esame-feedback" style="margin-top:.75rem"></div>
+      <div style="margin-top:.75rem"><button class="btn primary" onclick="rispostaEsameSM()">Verifica</button></div>`;
+    q._selSM = new Set();
+  }
+}
+
+function renderEsameGeo(panel, q) {
+  const db = q._paese === 'italia' ? DB_ITALIA : DB_FRANCIA;
+  if (!db) { esameIndex++; renderEsameDomanda(); return; }
+
+  if (q._tipo === 'vitigno') {
+    // Domanda: qual è la bacca di questo vitigno?
+    const vdata = db.vitigni[q._entita];
+    if (!vdata) { esameIndex++; renderEsameDomanda(); return; }
+    const corretta = vdata.bacca;
+    panel.innerHTML = `
+      <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q._paese==='italia'?'🇮🇹':'🇫🇷'} Vitigno</div>
+      <div style="font-size:15px; line-height:1.6; margin-bottom:1.25rem">Qual è il colore della bacca di <strong>${q._entita}</strong>?</div>
+      <div class="bacca-group">
+        <button class="bacca-btn" id="ebacca-B" onclick="rispostaEsameGeo('B','${corretta}','${q._entita}','${q._paese}','${q._tipo}')">🍇 Bacca Bianca</button>
+        <button class="bacca-btn" id="ebacca-N" onclick="rispostaEsameGeo('N','${corretta}','${q._entita}','${q._paese}','${q._tipo}')">🍇 Bacca Nera</button>
+      </div>
+      <div id="esame-feedback" style="margin-top:.75rem"></div>`;
+
+  } else if (q._tipo === 'area') {
+    const regioneData = db.aree[q._entita];
+    if (!regioneData) { esameIndex++; renderEsameDomanda(); return; }
+
+    // Italia: usa DOCG come entità da riconoscere
+    // Francia: usa areali come entità da riconoscere
+    const sottozone = q._paese === 'italia'
+      ? (regioneData.class || regioneData.docg || [])
+      : Object.keys(regioneData.areali || {});
+
+    if (!sottozone.length) { esameIndex++; renderEsameDomanda(); return; }
+
+    const sottozona = sottozone[Math.floor(Math.random()*sottozone.length)];
+    const correttaReg = q._entita;
+    const altreRegioni = shuffle(Object.keys(db.aree).filter(r=>r!==correttaReg)).slice(0,3);
+    const opts = shuffle([correttaReg, ...altreRegioni]);
+    const label = q._paese === 'italia' ? 'DOCG' : 'Areale';
+
+    panel.innerHTML = `
+      <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q._paese==='italia'?'🇮🇹':'🇫🇷'} ${label}</div>
+      <div style="font-size:15px; line-height:1.6; margin-bottom:1.25rem">In quale regione si trova <strong>${sottozona}</strong>?</div>
+      <div class="options-grid">
+        ${opts.map(o=>`<div class="option-item" onclick="rispostaEsameArea(this,'${o.replace(/'/g,"\\'")}','${correttaReg.replace(/'/g,"\\'")}','${sottozona.replace(/'/g,"\\'")}','${q._paese}')"><span>${o}</span></div>`).join('')}
+      </div>
+      <div id="esame-feedback" style="margin-top:.75rem"></div>`;
+  }
+}
+
+let _esameSMSel = new Set();
+
+function togEsameSM(i) {
+  const el = document.getElementById('esm-'+i);
+  const chk = document.getElementById('esm-check-'+i);
+  if (_esameSMSel.has(i)) { _esameSMSel.delete(i); el.classList.remove('selected'); chk.textContent=''; }
+  else { _esameSMSel.add(i); el.classList.add('selected'); chk.textContent='✓'; }
+}
+
+function rispostaEsameVF(scelta) {
+  const q = esameQueue[esameIndex];
+  const ok = scelta === q.ok;
+  const fb = document.getElementById('esame-feedback');
+  document.getElementById('evf-V').disabled = true;
+  document.getElementById('evf-F').disabled = true;
+  document.getElementById(scelta ? 'evf-V' : 'evf-F').classList.add(ok ? 'correct' : 'wrong');
+  if (!ok) document.getElementById(q.ok ? 'evf-V' : 'evf-F').classList.add('correct');
+  q._rispostaCorretta = q.ok ? 'Vero' : 'Falso';
+  q._spiegazione = q.sp || null;
+  registraRispostaEsame(ok, q, fb);
+}
+
+function rispostaEsameSM() {
+  const q = esameQueue[esameIndex];
+  const opts = q._optsShuffled || q.ops;
+  let ok = true;
+  const corrette = [];
+  opts.forEach((o,i) => {
+    const sel = _esameSMSel.has(i);
+    const el = document.getElementById('esm-'+i);
+    const chk = document.getElementById('esm-check-'+i);
+    if (o.ok && sel)  { el.classList.remove('selected'); el.classList.add('correct'); chk.textContent='✓'; corrette.push(o.t); }
+    else if (o.ok && !sel) { el.classList.add('missed'); chk.textContent='✓'; ok=false; corrette.push(o.t); }
+    else if (!o.ok && sel) { el.classList.remove('selected'); el.classList.add('wrong'); chk.textContent='✗'; ok=false; }
+  });
+  _esameSMSel = new Set();
+  q._rispostaCorretta = corrette.join(' / ');
+  q._spiegazione = null;
+  const fb = document.getElementById('esame-feedback');
+  registraRispostaEsame(ok, q, fb);
+}
+
+function rispostaEsameArea(elClicked, scelta, corretta, sottozona, paese) {
+  const ok = scelta === corretta;
+  const fb = document.getElementById('esame-feedback');
+  document.querySelectorAll('#esame-panel .option-item').forEach(el => {
+    el.style.pointerEvents = 'none';
+    const txt = el.querySelector('span')?.textContent?.trim() || '';
+    if (txt === corretta) el.classList.add('correct');
+    else if (txt === scelta && !ok) el.classList.add('wrong');
+  });
+  saveRispostaGeo('area', paese, sottozona, ok);
+  const q = {
+    d: sottozona,
+    _src: 'geo',
+    _rispostaCorretta: 'Regione: ' + corretta,
+    _spiegazione: sottozona + ' si trova nella regione ' + corretta + ' (' + (paese==='italia'?'Italia':'Francia') + ')'
+  };
+  registraRispostaEsame(ok, q, fb);
+}
+
+function rispostaEsameGeo(scelta, corretta, entita, paese, tipo) {
+  const ok = scelta === corretta;
+  const fb = document.getElementById('esame-feedback');
+  const btnB = document.getElementById('ebacca-B');
+  const btnN = document.getElementById('ebacca-N');
+  if (btnB) btnB.disabled = true;
+  if (btnN) btnN.disabled = true;
+  if (corretta === 'B') {
+    if (btnB) btnB.classList.add('correct');
+    if (!ok && btnN) btnN.classList.add('wrong');
+  } else {
+    if (btnN) btnN.classList.add('correct');
+    if (!ok && btnB) btnB.classList.add('wrong');
+  }
+  saveRispostaGeo(tipo, paese, entita, ok);
+  const baccaLabel = corretta === 'B' ? 'Bacca Bianca' : 'Bacca Nera';
+  const q = {
+    d: entita,
+    _src: 'geo',
+    _rispostaCorretta: baccaLabel,
+    _spiegazione: entita + ' è un vitigno a ' + baccaLabel.toLowerCase()
+  };
+  registraRispostaEsame(ok, q, fb);
+}
+
+
+
+function registraRispostaEsame(ok, q, fb) {
+  if (ok) { esameOk++; fb.className='feedback correct'; fb.textContent='✓ Corretto!'; }
+  else {
+    esameKo++; fb.className='feedback wrong'; fb.textContent='✗ Sbagliato.';
+    esameErrori.push(q);
+    // Aggiungi agli errori di sessione (non allo storico)
+    if (q._src === 'teorica') {
+      prodSessioneErrori.push({
+        id: q.id, tipo: q.tipo, d: q.d,
+        ok: q.ok, sp: q.sp,
+        ops: q._optsShuffled || q.ops,
+        categoria: q.categoria || 'Esame'
+      });
+    } else if (q._src === 'geo') {
+      const parts = q.d.replace(/[\[\]]/g,'').split(' - ');
+      if (parts.length >= 2) {
+        sessioneErroriGeo.push({
+          tipo: parts[1]?.split(']')[0] || 'area',
+          paese: parts[0] || 'italia',
+          entita: q.d.split('] ')[1]?.split(' - ')[0] || q.d
+        });
+      }
+    }
+  }
+  esameRisposte.push({ok, d: q.d});
+  document.getElementById('esame-score').textContent = esameOk + ' / ' + (esameOk+esameKo);
+  if (q._src === 'teorica' && q.id) saveRisposta(q.id, ok);
+
+  if (ok) {
+    // Risposta corretta: avanza automaticamente dopo 1.2 secondi
+    setTimeout(() => {
+      esameIndex++;
+      if (esameIndex >= esameQueue.length) { terminaEsame(false); return; }
+      _esameSMSel = new Set();
+      renderEsameDomanda();
+    }, 1200);
+  } else {
+    // Risposta errata: mostra pulsante "Successiva →"
+    const fb = document.getElementById('esame-feedback');
+    const btnNext = document.createElement('button');
+    btnNext.className = 'btn primary';
+    btnNext.style.marginTop = '1rem';
+    btnNext.textContent = 'Successiva →';
+    btnNext.onclick = () => {
+      esameIndex++;
+      if (esameIndex >= esameQueue.length) { terminaEsame(false); return; }
+      _esameSMSel = new Set();
+      renderEsameDomanda();
+    };
+    fb.parentNode.appendChild(btnNext);
+  }
+}
+
+function terminaEsame(manual) {
+  if (esameTimer) { clearInterval(esameTimer); esameTimer = null; }
+  showScreen('riepilogo-esame');
+  renderRiepilogoEsame(manual);
+}
+
+function renderRiepilogoEsame(manual) {
+  const tot  = esameOk + esameKo;
+  const pct  = tot ? Math.round(100*esameOk/tot) : 0;
+  const color = pct>=70 ? 'var(--green-text)' : pct>=50 ? 'var(--yellow-text)' : 'var(--red-text)';
+  const emoji = manual ? '👎' : pct>=70 ? '🎉' : pct>=50 ? '👍' : '💪';
+  const minUsati = esameDurata - Math.floor(esameSecondi/60);
+  const secUsati = (esameDurata*60 - esameSecondi) % 60;
+  const tempoUsato = minUsati + ':' + String(secUsati).padStart(2,'0');
+
+  let html = `
+    <div style="text-align:center; background:var(--bg-primary); border-radius:var(--radius-lg); border:0.5px solid var(--border-light); padding:2rem; margin-bottom:1rem;">
+      <div style="font-size:48px; margin-bottom:.5rem">${emoji}</div>
+      <h2 style="font-size:22px; font-weight:500; margin-bottom:.25rem">Esame ${manual ? 'interrotto' : 'completato'}</h2>
+      <p style="font-size:13px; color:var(--text-secondary); margin-bottom:1.5rem">Tempo utilizzato: ${tempoUsato}</p>
+      <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin-bottom:1.5rem;">
+        <div style="text-align:center; background:var(--bg-secondary); border-radius:var(--radius-md); padding:1rem 1.5rem;">
+          <div style="font-size:32px; font-weight:700; color:var(--green-text)">${esameOk}</div>
+          <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.07em">Corrette</div>
+        </div>
+        <div style="text-align:center; background:var(--bg-secondary); border-radius:var(--radius-md); padding:1rem 1.5rem;">
+          <div style="font-size:32px; font-weight:700; color:var(--red-text)">${esameKo}</div>
+          <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.07em">Errate</div>
+        </div>
+        <div style="text-align:center; background:var(--bg-secondary); border-radius:var(--radius-md); padding:1rem 1.5rem;">
+          <div style="font-size:32px; font-weight:700; color:${color}">${pct}%</div>
+          <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.07em">Punteggio</div>
+        </div>
+        <div style="text-align:center; background:var(--bg-secondary); border-radius:var(--radius-md); padding:1rem 1.5rem;">
+          <div style="font-size:32px; font-weight:700; color:var(--text-primary)">${tot}</div>
+          <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.07em">Totali</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:.75rem; justify-content:center; flex-wrap:wrap;">
+        <button class="btn primary" onclick="showSetupEsame()">↺ Nuovo esame</button>
+        <button class="btn" onclick="showApp()">← Torna al quiz</button>
+      </div>
+    </div>`;
+
+  if (esameErrori.length > 0) {
+    html += `<div style="background:var(--bg-primary); border-radius:var(--radius-lg); border:0.5px solid var(--border-light); padding:1.5rem; margin-top:1rem;">
+      <h3 style="font-size:14px; font-weight:500; margin-bottom:1rem;">❌ Domande sbagliate (${esameErrori.length})</h3>
+      <div style="display:flex; flex-direction:column; gap:10px;">`;
+    for (const e of esameErrori) {
+      const rispostaHtml = e._rispostaCorretta
+        ? `<div style="font-size:12px; color:var(--green-text); margin-top:4px">✓ Risposta corretta: <strong>${e._rispostaCorretta}</strong></div>`
+        : '';
+      const spiegHtml = e._spiegazione
+        ? `<div style="font-size:12px; color:var(--blue-text); background:var(--blue-bg); padding:6px 10px; border-radius:var(--radius-md); margin-top:4px">💡 ${e._spiegazione}</div>`
+        : '';
+      html += `<div style="padding:10px 12px; background:var(--red-bg); border-radius:var(--radius-md); border-left:3px solid var(--red-border);">
+        <span style="font-size:13px; color:var(--red-text); font-weight:500">${e.d}</span>
+        ${rispostaHtml}
+        ${spiegHtml}
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  document.getElementById('riepilogo-esame-content').innerHTML = html;
+}
+
+function showRipassa()    { showScreen('ripassa'); ripassaTab('sessione'); }
+let erroriStorici = [];      // domande teoriche sbagliate
+let erroriStoriciGeo = [];   // quiz geografici sbagliati
+let erroriStoriciLoaded = false;
+let ripassaCurrentTab = 'sessione';
+let ripassaQueue = [];
+let ripassaQueueGeo = [];
+
+// Errori geo della sessione corrente
+let sessioneErroriGeo = []; // {tipo, paese, entita}
+
+async function ripassaTab(tab) {
+  ripassaCurrentTab = tab;
+  document.getElementById('rtab-sessione').classList.toggle('active', tab==='sessione');
+  document.getElementById('rtab-storico').classList.toggle('active', tab==='storico');
+  const el = document.getElementById('ripassa-content');
+
+  if (tab === 'sessione') {
+    renderRipassaLista(el, prodSessioneErrori, sessioneErroriGeo, 'sessione');
+  } else {
+    el.innerHTML = '<div class="empty-state">⏳ Caricamento…</div>';
+
+    // Carica errori domande teoriche
+    const risposte = await sbGet(
+      '/rest/v1/risposte?user_id=eq.'+currentUser.id+'&corretta=eq.false&select=domanda_id,created_at,domande(id,domanda,tipo,risposta_corretta,spiegazione,categoria)',
+      authToken
+    );
+    const seen = new Set();
+    erroriStorici = [];
+    for (const r of (risposte||[]).reverse()) {
+      if (!seen.has(r.domanda_id) && r.domande) {
+        seen.add(r.domanda_id);
+        const d = r.domande;
+        let ops = [];
+        if (d.tipo === 'sm') {
+          const opz = await sbGet('/rest/v1/opzioni?domanda_id=eq.'+d.id+'&order=ordine', authToken);
+          ops = (opz||[]).map(o=>({t:o.testo, ok:o.corretta}));
+        }
+        erroriStorici.push({
+          id: d.id, tipo: d.tipo, d: d.domanda,
+          ok: d.risposta_corretta, sp: d.spiegazione,
+          ops, categoria: d.categoria
+        });
+      }
+    }
+
+    // Carica errori geografici
+    const risposteGeo = await sbGet(
+      '/rest/v1/risposte_geo?user_id=eq.'+currentUser.id+'&corretta=eq.false&select=tipo,paese,entita,created_at&order=created_at.desc',
+      authToken
+    );
+    const seenGeo = new Set();
+    erroriStoriciGeo = [];
+    for (const r of (risposteGeo||[])) {
+      const key = r.tipo+'|'+r.paese+'|'+r.entita;
+      if (!seenGeo.has(key)) {
+        seenGeo.add(key);
+        erroriStoriciGeo.push({tipo: r.tipo, paese: r.paese, entita: r.entita});
+      }
+    }
+
+    // Badge: somma entrambi
+    aggiornaBadgeErrori(erroriStorici.length + erroriStoriciGeo.length);
+    renderRipassaLista(el, erroriStorici, erroriStoriciGeo, 'storico');
+  }
+}
+
+function renderRipassaLista(el, domande, geo, tipo) {
+  const hasDom = domande && domande.length > 0;
+  const hasGeo = geo && geo.length > 0;
+
+  if (!hasDom && !hasGeo) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">${tipo==='sessione'?'✅':'🎯'}</div>${tipo==='sessione'?'Nessun errore in questa sessione!':'Nessun errore nello storico. Ottimo lavoro!'}</div>`;
+    return;
+  }
+
+  let html = '';
+
+  // Domande teoriche
+  if (hasDom) {
+    html += `<div style="margin-bottom:1.25rem;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; flex-wrap:wrap; gap:.5rem;">
+        <h4 style="font-size:13px; font-weight:500;">📋 Domande teoriche (${domande.length})</h4>
+        <button class="btn primary" style="padding:6px 12px; font-size:12px" onclick="avviaRipasso('${tipo}')">▶ Ripassa domande</button>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:5px;">`;
+    for (const q of domande) {
+      const cat = q.categoria ? `<span style="font-size:10px;color:var(--text-tertiary);display:block;margin-bottom:2px">${q.categoria}</span>` : '';
+      html += `<div style="padding:8px 12px; background:var(--red-bg); border-radius:var(--radius-md); border-left:3px solid var(--red-border);">
+        ${cat}<span style="font-size:13px; color:var(--red-text)">${q.d}</span>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  // Errori geografici
+  if (hasGeo) {
+    html += `<div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; flex-wrap:wrap; gap:.5rem;">
+        <h4 style="font-size:13px; font-weight:500;">🗺 Quiz geografici (${geo.length})</h4>
+        <button class="btn primary" style="padding:6px 12px; font-size:12px" onclick="avviaRipassoGeo('${tipo}')">▶ Ripassa geo</button>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:5px;">`;
+    for (const g of geo) {
+      const label = g.tipo === 'vitigno' ? '🍇 Vitigno' : g.tipo === 'area' ? '📍 Regione' : g.tipo === 'class' ? '🏆 DOCG' : g.tipo;
+      const paese = g.paese === 'italia' ? '🇮🇹' : '🇫🇷';
+      html += `<div style="padding:8px 12px; background:var(--yellow-bg); border-radius:var(--radius-md); border-left:3px solid var(--yellow-border);">
+        <span style="font-size:10px;color:var(--text-tertiary);display:block;margin-bottom:2px">${paese} ${label}</span>
+        <span style="font-size:13px; color:var(--yellow-text)">${g.entita}</span>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  el.innerHTML = html;
+}
+
+function avviaRipasso(tipo) {
+  const domande = tipo === 'sessione' ? prodSessioneErrori : erroriStorici;
+  if (!domande.length) return;
+
+  const catKey = '🔁 Ripasso errori';
+  DB_PRODUZIONE[catKey] = { tipo:'misto', domande: shuffle([...domande]) };
+
+  // Imposta stato sezione produzione
+  sezione = 'produzione';
+  ['italia','francia','produzione'].forEach(x => {
+    const b = document.getElementById('btn-'+x);
+    if (b) b.classList.toggle('active', x==='produzione');
+  });
+  document.getElementById('tab-group').innerHTML =
+    `<span style="font-size:11px;color:var(--text-tertiary);padding:4px 2px;display:flex;align-items:center">categoria →</span>`;
+  document.getElementById('areale-wrap').style.display='none';
+  showScreen('app');
+
+  // Imposta categoria e coda direttamente
+  prodCategoria = catKey;
+  prodQueue = shuffle([...DB_PRODUZIONE[catKey].domande]);
+  prodSessioneErrori = [];
+  prodSessioneTot = 0;
+
+  // Aggiorna select in background senza bloccare
+  const sel = document.getElementById('main-select');
+  if (!Array.from(sel.options).find(o => o.value === catKey)) {
+    const opt = document.createElement('option');
+    opt.value = catKey; opt.textContent = catKey;
+    sel.appendChild(opt);
+  }
+  sel.value = catKey;
+
+  // Avvia subito il quiz
+  renderProduzioneQuiz();
+}
+
+async function avviaRipassoGeo(tipo) {
+  const geoList = tipo === 'sessione' ? sessioneErroriGeo : erroriStoriciGeo;
+  if (!geoList.length) return;
+  ripassaQueueGeo = shuffle([...geoList]);
+  showApp();
+  await new Promise(r => setTimeout(r, 100));
+  // Avvia primo elemento
+  prossimoRipassoGeo();
+}
+
+function prossimoRipassoGeo() {
+  if (!ripassaQueueGeo.length) {
+    const panel = document.getElementById('main-panel');
+    panel.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div>Ripasso geografico completato!</div>';
+    return;
+  }
+  const g = ripassaQueueGeo.shift();
+  // Imposta la sezione giusta
+  const sez = g.paese === 'italia' ? 'italia' : 'francia';
+  if (sezione !== sez) {
+    setSection(sez);
+    setTimeout(() => impostaRipassoGeo(g), 800);
+  } else {
+    impostaRipassoGeo(g);
+  }
+}
+
+function impostaRipassoGeo(g) {
+  // Imposta modalità e seleziona entità
+  const modoMap = {'vitigno':'vitigno','area':'area','class':'class','classif':'classif'};
+  const nuovoMode = modoMap[g.tipo] || 'area';
+  if (mode !== nuovoMode) {
+    setMode(nuovoMode);
+    setTimeout(() => {
+      selezionaEntitaGeo(g);
+    }, 300);
+  } else {
+    selezionaEntitaGeo(g);
+  }
+}
+
+function selezionaEntitaGeo(g) {
+  selected = g.entita;
+  const sel = document.getElementById('main-select');
+  sel.value = g.entita;
+  checked = false; selectedOpts = {}; selectedBacca = null;
+  renderMain();
+}
+
+function aggiornaBadgeErrori(n) {
+  const badge = document.getElementById('badge-errori');
+  if (n > 0) {
+    badge.textContent = n;
+    badge.style.display = 'inline';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+async function azzeraStatistiche() {
+  if (!confirm('Sei sicuro di voler cancellare tutto lo storico degli errori? L\'operazione è irreversibile.')) return;
+  const el = document.getElementById('ripassa-content');
+  el.innerHTML = '<div class="empty-state">⏳ Cancellazione…</div>';
+
+  await Promise.all([
+    fetch(SUPABASE_URL + '/rest/v1/risposte?user_id=eq.'+currentUser.id, {
+      method:'DELETE', headers: sbHeaders(authToken)
+    }),
+    fetch(SUPABASE_URL + '/rest/v1/risposte_geo?user_id=eq.'+currentUser.id, {
+      method:'DELETE', headers: sbHeaders(authToken)
+    }),
+    fetch(SUPABASE_URL + '/rest/v1/sessioni_giornaliere?user_id=eq.'+currentUser.id, {
+      method:'DELETE', headers: sbHeaders(authToken)
+    })
+  ]);
+
+  erroriStorici = []; erroriStoriciGeo = [];
+  prodSessioneErrori = []; sessioneErroriGeo = [];
+  prodSessioneTot = 0;
+  aggiornaBadgeErrori(0);
+  el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div>Storico azzerato con successo.</div>';
+}
+
+// ── Salvataggio risposte ────────────────────────
+// ── Sessioni giornaliere ────────────────────────
+let _sessioneOggi = {ok:0, tot:0};
+let _sessioneFlushTimer = null;
+
+function aggiornaSessioneGiornaliera(corretta) {
+  if (!authToken || !currentUser) return;
+  _sessioneOggi.tot++;
+  if (corretta) _sessioneOggi.ok++;
+  // Debounce: salva su Supabase dopo 3 secondi di inattività
+  if (_sessioneFlushTimer) clearTimeout(_sessioneFlushTimer);
+  _sessioneFlushTimer = setTimeout(flushSessioneGiornaliera, 3000);
+}
+
+async function flushSessioneGiornaliera() {
+  if (!authToken || !currentUser || _sessioneOggi.tot === 0) return;
+  const oggi = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+  // Upsert: aggiorna il record del giorno corrente sommando i nuovi valori
+  const existing = await sbGet(
+    `/rest/v1/sessioni_giornaliere?user_id=eq.${currentUser.id}&data=eq.${oggi}`,
+    authToken
+  );
+  if (existing && existing.length) {
+    await sbPatch(
+      `/rest/v1/sessioni_giornaliere?user_id=eq.${currentUser.id}&data=eq.${oggi}`,
+      {
+        risposte_tot: existing[0].risposte_tot + _sessioneOggi.tot,
+        risposte_ok:  existing[0].risposte_ok  + _sessioneOggi.ok,
+        updated_at: new Date().toISOString()
+      }, authToken
+    );
+  } else {
+    await sbPost('/rest/v1/sessioni_giornaliere', {
+      user_id: currentUser.id,
+      data: oggi,
+      risposte_tot: _sessioneOggi.tot,
+      risposte_ok:  _sessioneOggi.ok
+    }, authToken);
+  }
+  _sessioneOggi = {ok:0, tot:0};
+}
+
+async function saveRisposta(domandaId, corretta) {
+  if (!authToken || !currentUser) return;
+  sbPost('/rest/v1/risposte',
+    {user_id: currentUser.id, domanda_id: domandaId, corretta}, authToken
+  ).catch(()=>{});
+  aggiornaSessioneGiornaliera(corretta);
+}
+
+async function saveRispostaGeo(tipo, paese, entita, corretta) {
+  if (!authToken || !currentUser) return;
+  sbPost('/rest/v1/risposte_geo',
+    {user_id: currentUser.id, tipo, paese, entita, corretta}, authToken
+  ).catch(()=>{});
+  aggiornaSessioneGiornaliera(corretta);
+}
+
+// ── Progressi ───────────────────────────────────
+async function loadProgressi() {
+  const el = document.getElementById('progressi-content');
+  el.innerHTML = '<div class="empty-state" style="background:var(--bg-primary);border-radius:var(--radius-lg);border:0.5px solid var(--border-light);padding:2rem;"><div class="empty-icon">⏳</div>Caricamento…</div>';
+
+  const [risposte, risposteGeo, sessioni] = await Promise.all([
+    sbGet('/rest/v1/risposte?user_id=eq.'+currentUser.id+'&select=domanda_id,corretta,created_at,domande(categoria)', authToken),
+    sbGet('/rest/v1/risposte_geo?user_id=eq.'+currentUser.id+'&select=tipo,paese,entita,corretta,created_at', authToken),
+    sbGet('/rest/v1/sessioni_giornaliere?user_id=eq.'+currentUser.id+'&order=data.desc&limit=30', authToken)
+  ]);
+
+  // Totali
+  const totOk  = (risposte||[]).filter(r=>r.corretta).length + (risposteGeo||[]).filter(r=>r.corretta).length;
+  const totAll = (risposte||[]).length + (risposteGeo||[]).length;
+  const pct = totAll ? Math.round(100*totOk/totAll) : 0;
+
+  // Per categoria
+  const perCat = {};
+  for (const r of (risposte||[])) {
+    const cat = r.domande?.categoria || 'Sconosciuta';
+    if (!perCat[cat]) perCat[cat] = {ok:0,tot:0};
+    perCat[cat].tot++;
+    if (r.corretta) perCat[cat].ok++;
+  }
+
+  // Per tipo geo
+  const perGeo = {};
+  for (const r of (risposteGeo||[])) {
+    const key = r.paese + ' — ' + r.tipo;
+    if (!perGeo[key]) perGeo[key] = {ok:0,tot:0};
+    perGeo[key].tot++;
+    if (r.corretta) perGeo[key].ok++;
+  }
+
+  if (!totAll) { el.innerHTML = '<div class="progress-card" style="text-align:center;padding:2rem;"><p>Nessuna risposta ancora registrata. Inizia il quiz!</p></div>'; return; }
+
+  let html = `<div style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+    <div class="progress-card" style="flex:1;min-width:120px;"><h4>Totali</h4><div style="font-size:28px;font-weight:600">${totAll}</div></div>
+    <div class="progress-card" style="flex:1;min-width:120px;"><h4>Corrette</h4><div style="font-size:28px;font-weight:600;color:var(--green-text)">${totOk}</div></div>
+    <div class="progress-card" style="flex:1;min-width:120px;"><h4>%</h4><div style="font-size:28px;font-weight:600;color:${pct>=70?'var(--green-text)':pct>=50?'var(--yellow-text)':'var(--red-text)'}">${pct}%</div></div>
+    <div class="progress-card" style="flex:1;min-width:120px;"><h4>Giorni</h4><div style="font-size:28px;font-weight:600;color:var(--blue-text)">${(sessioni||[]).length}</div></div>
+  </div>`;
+
+  // Storico sessioni per data
+  if (sessioni && sessioni.length) {
+    html += `<h3 style="font-size:14px;font-weight:500;margin-bottom:.75rem;">📅 Storico sessioni</h3>
+    <div style="background:var(--bg-primary);border-radius:var(--radius-md);border:0.5px solid var(--border-light);overflow:hidden;margin-bottom:1.5rem;">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+    <thead><tr>
+      <th style="text-align:left;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;padding:8px 12px;border-bottom:0.5px solid var(--border-light)">Data</th>
+      <th style="text-align:center;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;padding:8px 12px;border-bottom:0.5px solid var(--border-light)">Domande</th>
+      <th style="text-align:center;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;padding:8px 12px;border-bottom:0.5px solid var(--border-light)">Corrette</th>
+      <th style="text-align:center;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;padding:8px 12px;border-bottom:0.5px solid var(--border-light)">%</th>
+    </tr></thead><tbody>`;
+    for (const s of sessioni) {
+      const p = s.risposte_tot ? Math.round(100*s.risposte_ok/s.risposte_tot) : 0;
+      const col = p>=70?'var(--green-text)':p>=50?'var(--yellow-text)':'var(--red-text)';
+      const dataFmt = new Date(s.data+'T12:00:00').toLocaleDateString('it-IT',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+      html += `<tr style="border-bottom:0.5px solid var(--border-light)">
+        <td style="padding:8px 12px">${dataFmt}</td>
+        <td style="text-align:center;padding:8px 12px">${s.risposte_tot}</td>
+        <td style="text-align:center;padding:8px 12px;color:var(--green-text)">${s.risposte_ok}</td>
+        <td style="text-align:center;padding:8px 12px;font-weight:600;color:${col}">${p}%</td>
+      </tr>`;
+    }
+    html += '</tbody></table></div>';
+  }
+
+  // Per categoria
+  if (Object.keys(perCat).length) {
+    html += '<h3 style="font-size:14px;font-weight:500;margin-bottom:.75rem;">📋 Domande per categoria</h3><div class="progress-grid">';
+    for (const [cat, d] of Object.entries(perCat).sort((a,b)=>(b[1].ok/b[1].tot)-(a[1].ok/a[1].tot))) {
+      const p = Math.round(100*d.ok/d.tot);
+      html += `<div class="progress-card"><h4>${cat}</h4>
+        <div class="progress-bar-bg"><div class="progress-bar" style="width:${p}%"></div></div>
+        <div class="progress-pct">${d.ok}/${d.tot} corrette (${p}%)</div></div>`;
+    }
+    html += '</div>';
+  }
+
+  if (Object.keys(perGeo).length) {
+    html += '<h3 style="font-size:14px;font-weight:500;margin:.75rem 0;">🗺 Quiz geografici</h3><div class="progress-grid">';
+    for (const [key, d] of Object.entries(perGeo)) {
+      const p = Math.round(100*d.ok/d.tot);
+      html += `<div class="progress-card"><h4>${key}</h4>
+        <div class="progress-bar-bg"><div class="progress-bar" style="width:${p}%"></div></div>
+        <div class="progress-pct">${d.ok}/${d.tot} corrette (${p}%)</div></div>`;
+    }
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+// ── Admin ────────────────────────────────────────
+let currentAdminTab = 'utenti';
+function adminTab(tab) {
+  currentAdminTab = tab;
+  document.querySelectorAll('.admin-tab').forEach((t,i) =>
+    t.classList.toggle('active', ['utenti','statistiche','errori','competizioni'][i]===tab));
+  loadAdmin(tab);
+}
+
+function showAdmin() {
+  if (!currentProfile || currentProfile.ruolo !== 'admin') return;
+  showScreen('admin'); loadAdmin('utenti');
+}
+
+async function loadAdmin(tab) {
+  const el = document.getElementById('admin-body');
+  el.innerHTML = '<div class="empty-state">⏳ Caricamento…</div>';
+
+  if (tab === 'utenti') {
+    const profiles = await sbGet('/rest/v1/profiles?select=*&order=created_at.desc', authToken);
+    if (!profiles?.length || profiles.code) {
+      el.innerHTML='<p style="color:var(--text-tertiary);font-size:13px;">Nessun utente o errore di accesso.</p>';
+      console.log('profiles error:', profiles); return;
+    }
+    // Conta risposte per utente
+    const [risposte, risposteGeo] = await Promise.all([
+      sbGet('/rest/v1/risposte?select=user_id,corretta', authToken),
+      sbGet('/rest/v1/risposte_geo?select=user_id,corretta', authToken)
+    ]);
+    const perUser = {};
+    for (const r of [...(risposte||[]),...(risposteGeo||[])]) {
+      if (!perUser[r.user_id]) perUser[r.user_id] = {ok:0,tot:0};
+      perUser[r.user_id].tot++;
+      if (r.corretta) perUser[r.user_id].ok++;
+    }
+
+    let html = `<table>
+      <thead><tr><th>Username</th><th>Stato</th><th>Ultimo accesso</th><th>Registrato</th><th>Risposte</th><th>%</th><th></th></tr></thead>
+      <tbody>`;
+    for (const p of profiles) {
+      const accesso = p.ultimo_accesso ? new Date(p.ultimo_accesso).toLocaleDateString('it-IT', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+      const creato  = new Date(p.created_at).toLocaleDateString('it-IT');
+      const stats   = perUser[p.id] || {ok:0,tot:0};
+      const pct     = stats.tot ? Math.round(100*stats.ok/stats.tot) : null;
+      const pctHtml = pct !== null
+        ? `<strong style="color:${pct>=70?'var(--green-text)':pct>=50?'var(--yellow-text)':'var(--red-text)'}">${pct}%</strong>`
+        : '—';
+      html += `<tr>
+        <td><strong>${p.username}</strong>${p.ruolo==='admin'?' <span style="font-size:10px;color:var(--blue-text)">(admin)</span>':''}</td>
+        <td><span class="badge ${p.stato}">${p.stato.replace('_',' ')}</span></td>
+        <td style="font-size:12px">${accesso}</td>
+        <td style="font-size:12px">${creato}</td>
+        <td>${stats.tot || '—'}</td>
+        <td>${pctHtml}</td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${p.stato==='in_attesa' ? `<button class="btn-sm" style="color:var(--green-text);border-color:var(--green-border)" onclick="approvaUtente('${p.id}')">✓ Approva</button>` : ''}
+          ${p.stato==='approvato' && p.ruolo!=='admin' ? `<button class="btn-sm" style="color:var(--red-text);border-color:var(--red-border)" onclick="bloccaUtente('${p.id}')">Blocca</button>` : ''}
+          ${p.stato==='bloccato'  ? `<button class="btn-sm" onclick="approvaUtente('${p.id}')">Riattiva</button>` : ''}
+        </td>
+      </tr>`;
+    }
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  }
+
+  if (tab === 'statistiche') {
+    const [risposte, risposteGeo, profiles] = await Promise.all([
+      sbGet('/rest/v1/risposte?select=user_id,corretta,created_at,domande(categoria)', authToken),
+      sbGet('/rest/v1/risposte_geo?select=user_id,tipo,paese,entita,corretta,created_at', authToken),
+      sbGet('/rest/v1/profiles?select=id,username,stato,ultimo_accesso&order=username.asc', authToken)
+    ]);
+
+    const perUser = {};
+    for (const r of (risposte||[])) {
+      if (!perUser[r.user_id]) perUser[r.user_id] = {ok:0,tot:0,categorie:{}};
+      perUser[r.user_id].tot++;
+      if (r.corretta) perUser[r.user_id].ok++;
+      const cat = r.domande?.categoria || 'Teoria';
+      if (!perUser[r.user_id].categorie[cat]) perUser[r.user_id].categorie[cat]={ok:0,tot:0};
+      perUser[r.user_id].categorie[cat].tot++;
+      if (r.corretta) perUser[r.user_id].categorie[cat].ok++;
+    }
+    for (const r of (risposteGeo||[])) {
+      if (!perUser[r.user_id]) perUser[r.user_id] = {ok:0,tot:0,categorie:{}};
+      perUser[r.user_id].tot++;
+      if (r.corretta) perUser[r.user_id].ok++;
+      const cat = r.paese + ' — ' + r.tipo;
+      if (!perUser[r.user_id].categorie[cat]) perUser[r.user_id].categorie[cat]={ok:0,tot:0};
+      perUser[r.user_id].categorie[cat].tot++;
+      if (r.corretta) perUser[r.user_id].categorie[cat].ok++;
+    }
+
+    let html = `<table>
+      <thead><tr><th>Studente</th><th>Stato</th><th>Ultimo accesso</th><th>Risposte</th><th>%</th><th>Cat. peggiore</th></tr></thead>
+      <tbody>`;
+    for (const p of (profiles||[])) {
+      if (p.ruolo === 'admin') continue;
+      const d = perUser[p.id] || {ok:0,tot:0,categorie:{}};
+      const pct = d.tot ? Math.round(100*d.ok/d.tot) : null;
+      const accesso = p.ultimo_accesso ? new Date(p.ultimo_accesso).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+      // Categoria peggiore
+      let catPeggiore = '—';
+      if (d.categorie && Object.keys(d.categorie).length) {
+        const worst = Object.entries(d.categorie)
+          .filter(([,v])=>v.tot>=3)
+          .sort((a,b)=>(a[1].ok/a[1].tot)-(b[1].ok/b[1].tot))[0];
+        if (worst) {
+          const wp = Math.round(100*worst[1].ok/worst[1].tot);
+          catPeggiore = `<span style="font-size:11px">${worst[0]} (${wp}%)</span>`;
+        }
+      }
+      html += `<tr>
+        <td><strong style="cursor:pointer;color:var(--blue-text)" onclick="mostraDettaglioUtente('${p.id}','${p.username}')">${p.username}</strong></td>
+        <td><span class="badge ${p.stato}">${p.stato?.replace('_',' ')}</span></td>
+        <td style="font-size:12px">${accesso}</td>
+        <td>${d.tot || '—'}</td>
+        <td>${pct!==null ? `<strong style="color:${pct>=70?'var(--green-text)':pct>=50?'var(--yellow-text)':'var(--red-text)'}">${pct}%</strong>` : '—'}</td>
+        <td>${catPeggiore}</td>
+      </tr>`;
+    }
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  }
+
+  if (tab === 'errori') {
+    // Errori più frequenti di tutta la classe
+    const [risposte, risposteGeo] = await Promise.all([
+      sbGet('/rest/v1/risposte?corretta=eq.false&select=domanda_id,domande(domanda,categoria)&limit=1000', authToken),
+      sbGet('/rest/v1/risposte_geo?corretta=eq.false&select=tipo,paese,entita&limit=1000', authToken)
+    ]);
+
+    // Conta errori per domanda
+    const erroriDom = {};
+    for (const r of (risposte||[])) {
+      if (!r.domande) continue;
+      const key = r.domanda_id;
+      if (!erroriDom[key]) erroriDom[key] = {domanda: r.domande.domanda, categoria: r.domande.categoria, n:0};
+      erroriDom[key].n++;
+    }
+
+    // Conta errori geo
+    const erroriGeo = {};
+    for (const r of (risposteGeo||[])) {
+      const key = r.tipo+'|'+r.paese+'|'+r.entita;
+      if (!erroriGeo[key]) erroriGeo[key] = {entita: r.entita, tipo: r.tipo, paese: r.paese, n:0};
+      erroriGeo[key].n++;
+    }
+
+    const topDom = Object.values(erroriDom).sort((a,b)=>b.n-a.n).slice(0,15);
+    const topGeo = Object.values(erroriGeo).sort((a,b)=>b.n-a.n).slice(0,10);
+
+    let html = '';
+    if (topDom.length) {
+      html += `<h4 style="font-size:13px;font-weight:500;margin-bottom:.75rem">📋 Domande teoriche più sbagliate</h4>
+      <table><thead><tr><th>Domanda</th><th>Categoria</th><th>Errori</th></tr></thead><tbody>`;
+      for (const e of topDom) {
+        html += `<tr>
+          <td style="font-size:12px;max-width:400px">${e.domanda}</td>
+          <td style="font-size:11px;color:var(--text-tertiary)">${e.categoria}</td>
+          <td style="text-align:center"><span style="background:var(--red-bg);color:var(--red-text);padding:2px 8px;border-radius:10px;font-size:12px;font-weight:600">${e.n}</span></td>
+        </tr>`;
+      }
+      html += '</tbody></table>';
+    }
+    if (topGeo.length) {
+      html += `<h4 style="font-size:13px;font-weight:500;margin:1.25rem 0 .75rem">🗺 Quiz geografici più sbagliati</h4>
+      <table><thead><tr><th>Entità</th><th>Tipo</th><th>Paese</th><th>Errori</th></tr></thead><tbody>`;
+      for (const e of topGeo) {
+        html += `<tr>
+          <td><strong>${e.entita}</strong></td>
+          <td style="font-size:11px;color:var(--text-tertiary)">${e.tipo}</td>
+          <td style="font-size:11px">${e.paese==='italia'?'🇮🇹':'🇫🇷'}</td>
+          <td style="text-align:center"><span style="background:var(--red-bg);color:var(--red-text);padding:2px 8px;border-radius:10px;font-size:12px;font-weight:600">${e.n}</span></td>
+        </tr>`;
+      }
+      html += '</tbody></table>';
+    }
+    if (!topDom.length && !topGeo.length) html = '<div class="empty-state">Nessun errore registrato.</div>';
+    el.innerHTML = html;
+  }
+
+  if (tab === 'competizioni') {
+    const [comps, profiles] = await Promise.all([
+      sbGet('/rest/v1/competizioni?select=*&order=created_at.desc', authToken),
+      sbGet('/rest/v1/profiles?select=id,username,stato', authToken)
+    ]);
+
+    if (!comps?.length) { el.innerHTML='<div class="empty-state">Nessuna competizione creata.</div>'; return; }
+
+    const profMap = Object.fromEntries((profiles||[]).map(p=>[p.id,p]));
+    let html = '';
+
+    for (const c of comps) {
+      const isAttiva = c.stato==='attiva' && new Date(c.scadenza) > new Date();
+      const scadenza = new Date(c.scadenza).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      const statoBadge = isAttiva
+        ? '<span class="badge approvato">Attiva</span>'
+        : '<span class="badge bloccato">Chiusa</span>';
+
+      // Carica partecipazioni per questa competizione
+      const risposte = await sbGet(
+        `/rest/v1/competizioni_risposte?competizione_id=eq.${c.id}&select=*`,
+        authToken
+      );
+
+      const partMap = Object.fromEntries((risposte||[]).map(r=>[r.user_id,r]));
+      const studenti = (profiles||[]).filter(p=>p.ruolo!=='admin');
+
+      html += `<div style="background:var(--bg-secondary);border-radius:var(--radius-md);border:0.5px solid var(--border-light);padding:1rem 1.25rem;margin-bottom:1rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
+          <div>
+            <span style="font-size:15px;font-weight:500">${c.nome}</span>
+            <span style="margin-left:.5rem">${statoBadge}</span>
+            <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">${c.categoria} · ${c.n_domande} domande · ${c.durata_minuti} min · Scade: ${scadenza}</div>
+          </div>
+          <div style="display:flex;gap:.5rem">
+            ${isAttiva ? `<button class="btn-sm" style="color:var(--red-text);border-color:var(--red-border)" onclick="adminChiudiComp(${c.id})">Chiudi</button>` : ''}
+            <button class="btn-sm" onclick="mostraClassifica(${c.id},'${c.nome.replace(/'/g,"\\'")}')">🏆 Classifica</button>
+          </div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr>
+            <th style="text-align:left;padding:5px 8px;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;border-bottom:0.5px solid var(--border-light)">Studente</th>
+            <th style="text-align:center;padding:5px 8px;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;border-bottom:0.5px solid var(--border-light)">Stato</th>
+            <th style="text-align:center;padding:5px 8px;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;border-bottom:0.5px solid var(--border-light)">Risposte</th>
+            <th style="text-align:center;padding:5px 8px;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;border-bottom:0.5px solid var(--border-light)">%</th>
+            <th style="text-align:center;padding:5px 8px;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;border-bottom:0.5px solid var(--border-light)">Tempo</th>
+          </tr></thead>
+          <tbody>`;
+
+      for (const p of studenti) {
+        const r = partMap[p.id];
+        if (!r) {
+          // Non ha ancora partecipato
+          html += `<tr style="border-bottom:0.5px solid var(--border-light)">
+            <td style="padding:6px 8px"><strong>${p.username}</strong></td>
+            <td style="text-align:center;padding:6px 8px"><span class="badge in_attesa">Non partecipato</span></td>
+            <td style="text-align:center;padding:6px 8px;color:var(--text-tertiary)">—</td>
+            <td style="text-align:center;padding:6px 8px;color:var(--text-tertiary)">—</td>
+            <td style="text-align:center;padding:6px 8px;color:var(--text-tertiary)">—</td>
+          </tr>`;
+        } else {
+          const pct = r.risposte_tot ? Math.round(100*r.risposte_ok/r.risposte_tot) : 0;
+          const col = pct>=70?'var(--green-text)':pct>=50?'var(--yellow-text)':'var(--red-text)';
+          const tempo = r.tempo_secondi ? Math.floor(r.tempo_secondi/60)+':'+(String(r.tempo_secondi%60).padStart(2,'0')) : '—';
+          html += `<tr style="border-bottom:0.5px solid var(--border-light)">
+            <td style="padding:6px 8px"><strong>${p.username}</strong></td>
+            <td style="text-align:center;padding:6px 8px">
+              <span class="badge ${r.completata?'approvato':'in_attesa'}">${r.completata?'Completata':'In corso'}</span>
+            </td>
+            <td style="text-align:center;padding:6px 8px">${r.risposte_ok}/${r.risposte_tot}</td>
+            <td style="text-align:center;padding:6px 8px;font-weight:600;color:${col}">${r.risposte_tot?pct+'%':'—'}</td>
+            <td style="text-align:center;padding:6px 8px;font-size:11px">${tempo}</td>
+          </tr>`;
+        }
+      }
+
+      const nPart = Object.keys(partMap).length;
+      const nComp = (risposte||[]).filter(r=>r.completata).length;
+      html += `</tbody></table>
+        <div style="font-size:11px;color:var(--text-tertiary);margin-top:.5rem">
+          ${nPart}/${studenti.length} iscritti · ${nComp} completato
+        </div>
+      </div>`;
+    }
+
+    el.innerHTML = html;
+  }
+}
+
+async function adminChiudiComp(id) {
+  if (!confirm('Chiudi questa competizione? La classifica diventerà visibile a tutti.')) return;
+  await sbPatch('/rest/v1/competizioni?id=eq.'+id, {stato:'chiusa'}, authToken);
+  loadAdmin('competizioni');
+}
+
+async function mostraDettaglioUtente(userId, username) {
+  const el = document.getElementById('admin-body');
+  el.innerHTML = `<div style="margin-bottom:1rem;display:flex;align-items:center;gap:.75rem">
+    <button class="btn-sm" onclick="loadAdmin('statistiche')">← Indietro</button>
+    <h4 style="font-size:14px;font-weight:500">Dettaglio: ${username}</h4>
+  </div><div class="empty-state">⏳ Caricamento…</div>`;
+
+  const [risposte, risposteGeo, sessioni] = await Promise.all([
+    sbGet(`/rest/v1/risposte?user_id=eq.${userId}&select=corretta,domande(categoria)`, authToken),
+    sbGet(`/rest/v1/risposte_geo?user_id=eq.${userId}&select=tipo,paese,entita,corretta`, authToken),
+    sbGet(`/rest/v1/sessioni_giornaliere?user_id=eq.${userId}&order=data.desc&limit=30`, authToken)
+  ]);
+
+  const totOk = (risposte||[]).filter(r=>r.corretta).length + (risposteGeo||[]).filter(r=>r.corretta).length;
+  const totAll = (risposte||[]).length + (risposteGeo||[]).length;
+  const pct = totAll ? Math.round(100*totOk/totAll) : 0;
+
+  // Per categoria
+  const perCat = {};
+  for (const r of (risposte||[])) {
+    const cat = r.domande?.categoria || 'Sconosciuta';
+    if (!perCat[cat]) perCat[cat]={ok:0,tot:0};
+    perCat[cat].tot++; if(r.corretta) perCat[cat].ok++;
+  }
+
+  let html = `<div style="margin-bottom:1rem;display:flex;align-items:center;gap:.75rem">
+    <button class="btn-sm" onclick="loadAdmin('statistiche')">← Indietro</button>
+    <h4 style="font-size:14px;font-weight:500">Dettaglio: ${username}</h4>
+  </div>
+  <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;">
+    <div class="progress-card" style="flex:1;min-width:100px"><h4>Totali</h4><div style="font-size:24px;font-weight:600">${totAll}</div></div>
+    <div class="progress-card" style="flex:1;min-width:100px"><h4>%</h4><div style="font-size:24px;font-weight:600;color:${pct>=70?'var(--green-text)':pct>=50?'var(--yellow-text)':'var(--red-text)'}">${pct}%</div></div>
+    <div class="progress-card" style="flex:1;min-width:100px"><h4>Giorni</h4><div style="font-size:24px;font-weight:600;color:var(--blue-text)">${(sessioni||[]).length}</div></div>
+  </div>`;
+
+  // Storico sessioni
+  if (sessioni && sessioni.length) {
+    html += `<h4 style="font-size:12px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">Sessioni</h4>
+    <table style="margin-bottom:1rem"><thead><tr><th>Data</th><th>Domande</th><th>%</th></tr></thead><tbody>`;
+    for (const s of sessioni) {
+      const p = s.risposte_tot ? Math.round(100*s.risposte_ok/s.risposte_tot) : 0;
+      const dataFmt = new Date(s.data+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'short'});
+      html += `<tr><td>${dataFmt}</td><td>${s.risposte_tot}</td><td style="color:${p>=70?'var(--green-text)':p>=50?'var(--yellow-text)':'var(--red-text)'}"><strong>${p}%</strong></td></tr>`;
+    }
+    html += '</tbody></table>';
+  }
+
+  // Categorie peggiori
+  const sorted = Object.entries(perCat).filter(([,v])=>v.tot>0).sort((a,b)=>(a[1].ok/a[1].tot)-(b[1].ok/b[1].tot));
+  if (sorted.length) {
+    html += `<h4 style="font-size:12px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">Categorie (dalla peggiore)</h4>
+    <table><thead><tr><th>Categoria</th><th>Domande</th><th>%</th></tr></thead><tbody>`;
+    for (const [cat,d] of sorted) {
+      const p = Math.round(100*d.ok/d.tot);
+      html += `<tr><td>${cat}</td><td>${d.tot}</td><td style="color:${p>=70?'var(--green-text)':p>=50?'var(--yellow-text)':'var(--red-text)'}"><strong>${p}%</strong></td></tr>`;
+    }
+    html += '</tbody></table>';
+  }
+
+  el.innerHTML = html;
+}
+
+async function approvaUtente(id) {
+  await sbPatch('/rest/v1/profiles?id=eq.'+id, {stato:'approvato'}, authToken);
+  loadAdmin(currentAdminTab);
+}
+
+async function bloccaUtente(id) {
+  await sbPatch('/rest/v1/profiles?id=eq.'+id, {stato:'bloccato'}, authToken);
+  loadAdmin(currentAdminTab);
+}
+
+// ── Check sessione al caricamento ───────────────
+async function checkSession() {
+  // Gestisci redirect da conferma email (hash con access_token)
+  const hash = window.location.hash;
+  if (hash && hash.includes('access_token')) {
+    const params = new URLSearchParams(hash.substring(1));
+    const accessToken = params.get('access_token');
+    // Pulisci l'URL
+    window.history.replaceState(null, '', window.location.pathname);
+    if (accessToken) {
+      authToken = accessToken;
+      localStorage.setItem('sb_token', accessToken);
+      const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+        headers: {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + accessToken}
+      });
+      if (res.ok) {
+        currentUser = await res.json();
+        await loadProfile();
+        return;
+      }
+    }
+  }
+  // Controlla token salvato
+  const token = localStorage.getItem('sb_token');
+  if (token) {
+    const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+      headers: {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token}
+    });
+    if (res.ok) {
+      const user = await res.json();
+      if (user?.id) {
+        authToken = token;
+        currentUser = user;
+        await loadProfile();
+        return;
+      }
+    }
+    localStorage.removeItem('sb_token');
+  }
+  showScreen('login');
+}
+
+// Salva/rimuovi token in localStorage
+const origLogin = doLogin;
+doLogin = async function() {
+  const email = document.getElementById('login-email').value.trim();
+  const pwd   = document.getElementById('login-pwd').value;
+  const err   = document.getElementById('login-err');
+  err.style.display='none';
+  const res = await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password', {
+    method:'POST', headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+    body: JSON.stringify({email, password:pwd})
+  });
+  const data = await res.json();
+  if (data.error || !data.access_token) {
+    err.textContent = data.error_description || 'Email o password non corretti.';
+    err.style.display='block'; return;
+  }
+  authToken = data.access_token;
+  currentUser = data.user;
+  localStorage.setItem('sb_token', authToken);
+  await loadProfile();
+};
+
+const origLogout = doLogout;
+doLogout = async function() {
+  localStorage.removeItem('sb_token');
+  if (authToken) {
+    await fetch(SUPABASE_URL+'/auth/v1/logout', {
+      method:'POST', headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+authToken}
+    });
+  }
+  authToken=null; currentUser=null; currentProfile=null;
+  showScreen('login');
+};
+
+// ── Quiz JS (invariato) ─────────────────────────
+
+// ═══════════════════════════════════════════════════════════════
+//  DATABASE ITALIA
+// ═══════════════════════════════════════════════════════════════
+// ── Geo data loaded from Supabase ──────────────
+let DB = null;        // active DB (italia/francia)
+let DB_ITALIA = null;
+let DB_FRANCIA = null;
+let geoLoaded = false;
+let geoLoading = false;
+
+async function loadGeoSupabase() {
+  if (geoLoaded || geoLoading) return;
+  geoLoading = true;
+  try {
+    const h = { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcWdtd2Nybmh4ZmRma2ZqaXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3MTcsImV4cCI6MjA5NDM5OTcxN30.gOVk3CjeT20MeZORLUFvL4Jd1FXJJSSRczUmUUANxXY', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcWdtd2Nybmh4ZmRma2ZqaXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3MTcsImV4cCI6MjA5NDM5OTcxN30.gOVk3CjeT20MeZORLUFvL4Jd1FXJJSSRczUmUUANxXY' };
+    const base = 'https://ypqgmwcrnhxfdfkfjivc.supabase.co/rest/v1';
+
+    // Fetch all tables in parallel
+    const [rPaesi, rRegioni, rDocg, rAreali, rVitigni, rVR, rVD, rAV] = await Promise.all([
+      fetch(base+'/paesi?select=*', {headers:h}).then(r=>r.json()),
+      fetch(base+'/regioni?select=*', {headers:h}).then(r=>r.json()),
+      fetch(base+'/docg?select=*', {headers:h}).then(r=>r.json()),
+      fetch(base+'/areali?select=*', {headers:h}).then(r=>r.json()),
+      fetch(base+'/vitigni?select=*', {headers:h}).then(r=>r.json()),
+      fetch(base+'/vitigni_regioni?select=*', {headers:h}).then(r=>r.json()),
+      fetch(base+'/vitigni_docg?select=*', {headers:h}).then(r=>r.json()),
+      fetch(base+'/areali_vitigni?select=*', {headers:h}).then(r=>r.json()),
+    ]);
+
+    // Index by id
+    const paesiById   = Object.fromEntries(rPaesi.map(p=>[p.id,p]));
+    const regioniById = Object.fromEntries(rRegioni.map(r=>[r.id,r]));
+    const docgById    = Object.fromEntries(rDocg.map(d=>[d.id,d]));
+    const arealiById  = Object.fromEntries(rAreali.map(a=>[a.id,a]));
+    const vitigniById = Object.fromEntries(rVitigni.map(v=>[v.id,v]));
+
+    // Maps: regione_id -> [docg_nome]
+    const docgByReg = {};
+    for (const d of rDocg) {
+      if (!docgByReg[d.regione_id]) docgByReg[d.regione_id] = [];
+      docgByReg[d.regione_id].push(d.nome);
+    }
+
+    // Maps: regione_id -> [areale]
+    const arealiByReg = {};
+    for (const a of rAreali) {
+      if (!arealiByReg[a.regione_id]) arealiByReg[a.regione_id] = [];
+      arealiByReg[a.regione_id].push(a);
+    }
+
+    // Maps: areale_id -> [vitigno_nome]
+    const vitByAreale = {};
+    for (const av of rAV) {
+      if (!vitByAreale[av.areale_id]) vitByAreale[av.areale_id] = [];
+      const v = vitigniById[av.vitigno_id];
+      if (v) vitByAreale[av.areale_id].push(v.nome);
+    }
+
+    // Maps: vitigno_id -> [regione_nome]
+    const regByVit = {};
+    for (const vr of rVR) {
+      if (!regByVit[vr.vitigno_id]) regByVit[vr.vitigno_id] = [];
+      const r = regioniById[vr.regione_id];
+      if (r) regByVit[vr.vitigno_id].push(r.nome);
+    }
+
+    // Maps: vitigno_id -> [docg_nome]
+    const docgByVit = {};
+    for (const vd of rVD) {
+      if (!docgByVit[vd.vitigno_id]) docgByVit[vd.vitigno_id] = [];
+      const d = docgById[vd.docg_id];
+      if (d) docgByVit[vd.vitigno_id].push(d.nome);
+    }
+
+    // Build DB_ITALIA and DB_FRANCIA
+    const itPaese = rPaesi.find(p=>p.codice==='italia');
+    const frPaese = rPaesi.find(p=>p.codice==='francia');
+
+    function buildDB(paeseObj, classLabel, classLabelPlural) {
+      const pid = paeseObj.id;
+      const regioni = rRegioni.filter(r=>r.paese_id===pid);
+      const aree = {};
+      for (const reg of regioni) {
+        aree[reg.nome] = {
+          class:   docgByReg[reg.id] || [],
+          vitigni: [],  // filled below
+          areali:  {}
+        };
+        // Areali (Francia)
+        for (const areale of (arealiByReg[reg.id] || [])) {
+          aree[reg.nome].areali[areale.nome] = {
+            vitigni: vitByAreale[areale.id] || []
+          };
+        }
+      }
+      // Vitigni per regione (from vitigni_regioni)
+      const vitsByRegNome = {};
+      for (const vr of rVR) {
+        const v = vitigniById[vr.vitigno_id];
+        const r = regioniById[vr.regione_id];
+        if (v && r && r.paese_id===pid) {
+          if (!vitsByRegNome[r.nome]) vitsByRegNome[r.nome] = [];
+          vitsByRegNome[r.nome].push(v.nome);
+        }
+      }
+      for (const [regNome, vits] of Object.entries(vitsByRegNome)) {
+        if (aree[regNome]) aree[regNome].vitigni = vits;
+      }
+
+      // Vitigni map
+      const vitigniMap = {};
+      for (const v of rVitigni.filter(v=>v.paese_id===pid)) {
+        vitigniMap[v.nome] = {
+          bacca:   v.bacca,
+          regioni: regByVit[v.id] || [],
+          docg:    docgByVit[v.id] || []
+        };
+      }
+
+      return { classLabel, classLabelPlural, aree, vitigni: vitigniMap };
+    }
+
+    DB_ITALIA  = buildDB(itPaese, 'DOCG', 'DOCG');
+    DB_FRANCIA = buildDB(frPaese, 'AOC',  'AOC / classificazioni');
+
+    geoLoaded = true;
+    console.log('Geo loaded: IT', Object.keys(DB_ITALIA.aree).length, 'regioni, FR', Object.keys(DB_FRANCIA.aree).length, 'regioni');
+  } catch(e) {
+    console.error('Errore caricamento geo:', e);
+  }
+  geoLoading = false;
+}
+
+const DB_CLASSIF = {
+  'Bordeaux': [
+    { tipo:'single', domanda:'In quale anno fu stilata la grande classificazione del Médoc e Sauternes?', opzioni:[{t:'1855',ok:true},{t:'1932',ok:false},{t:'1787',ok:false},{t:'1900',ok:false}] },
+    { tipo:'single', domanda:'Quanti livelli ha la classificazione del Médoc del 1855?', opzioni:[{t:'5 Crus Classés (Premier → Cinquième)',ok:true},{t:'3 livelli',ok:false},{t:'4 livelli',ok:false},{t:'6 livelli',ok:false}] },
+    { tipo:'multi', domanda:'Quali sono i 5 châteaux Premier Cru Classé del Médoc (1855)?', opzioni:[{t:'Château Lafite Rothschild',ok:true},{t:'Château Margaux',ok:true},{t:'Château Latour',ok:true},{t:'Château Haut-Brion',ok:true},{t:'Château Mouton Rothschild',ok:true},{t:'Château Pétrus',ok:false},{t:'Château Cheval Blanc',ok:false}] },
+    { tipo:'single', domanda:'Château Pétrus (Pomerol) ha una classificazione ufficiale nel sistema del 1855?', opzioni:[{t:'No — Pomerol non ha classificazione ufficiale',ok:true},{t:'Sì, Premier Grand Cru Classé',ok:false},{t:'Sì, Cru Exceptionnel',ok:false},{t:'Sì, Grand Cru Classé',ok:false}] },
+    { tipo:'single', domanda:'Con quale frequenza viene rivista la classificazione di Saint-Émilion?', opzioni:[{t:'Ogni 10 anni circa',ok:true},{t:'È fissa dal 1855',ok:false},{t:'Ogni anno',ok:false},{t:'Ogni 25 anni',ok:false}] },
+    { tipo:'multi', domanda:'Quali categorie esistono nella classificazione di Saint-Émilion?', opzioni:[{t:'Premier Grand Cru Classé A',ok:true},{t:'Premier Grand Cru Classé B',ok:true},{t:'Grand Cru Classé',ok:true},{t:'Grand Cru (non classé)',ok:true},{t:'Cinquième Cru Classé',ok:false},{t:'Cru Bourgeois',ok:false}] },
+    { tipo:'single', domanda:'Cosa sono i "Crus Bourgeois" nel Médoc?', opzioni:[{t:'Una classificazione intermedia sotto i Crus Classés del 1855',ok:true},{t:'Un livello superiore ai Premier Crus',ok:false},{t:'Châteaux non classificati di Saint-Émilion',ok:false},{t:'Una denominazione specifica della Gironda',ok:false}] },
+  ],
+  'Borgogna': [
+    { tipo:'single', domanda:'Quanti livelli ha la gerarchia dei vini di Borgogna?', opzioni:[{t:'4 livelli',ok:true},{t:'3 livelli',ok:false},{t:'5 livelli',ok:false},{t:'2 livelli',ok:false}] },
+    { tipo:'multi', domanda:'Quali sono i 4 livelli della gerarchia borgognona?', opzioni:[{t:'Bourgogne Régionale',ok:true},{t:'Village (Communale)',ok:true},{t:'Premier Cru',ok:true},{t:'Grand Cru',ok:true},{t:'Cru Classé',ok:false},{t:'Cru Exceptionnel',ok:false}] },
+    { tipo:'single', domanda:'Quanti Grand Cru esistono in Borgogna?', opzioni:[{t:'33',ok:true},{t:'51',ok:false},{t:'12',ok:false},{t:'5',ok:false}] },
+    { tipo:'single', domanda:'In Borgogna il Grand Cru appare sull\'etichetta senza indicare il village?', opzioni:[{t:'Vero — il Grand Cru è la propria AOC',ok:true},{t:'Falso — viene sempre indicato il village',ok:false}] },
+    { tipo:'single', domanda:'Romanée-Conti (DRC) è un Grand Cru di quale village?', opzioni:[{t:'Vosne-Romanée',ok:true},{t:'Gevrey-Chambertin',ok:false},{t:'Chambolle-Musigny',ok:false},{t:'Nuits-Saint-Georges',ok:false}] },
+    { tipo:'single', domanda:'Il Chablis Grand Cru è vinificato esclusivamente con quale vitigno?', opzioni:[{t:'Chardonnay',ok:true},{t:'Pinot Nero',ok:false},{t:'Aligoté',ok:false},{t:'Pinot Blanc',ok:false}] },
+    { tipo:'single', domanda:'I 10 Crus del Beaujolais usano esclusivamente quale vitigno?', opzioni:[{t:'Gamay',ok:true},{t:'Pinot Nero',ok:false},{t:'Chardonnay',ok:false},{t:'Aligoté',ok:false}] },
+    { tipo:'multi', domanda:'Quali di questi sono Crus del Beaujolais?', opzioni:[{t:'Moulin-à-Vent',ok:true},{t:'Morgon',ok:true},{t:'Fleurie',ok:true},{t:'Brouilly',ok:true},{t:'Chiroubles',ok:true},{t:'Vougeot',ok:false},{t:'Gevrey',ok:false}] },
+  ],
+  'Champagne': [
+    { tipo:'single', domanda:'Cosa indica "Blanc de Blancs" in Champagne?', opzioni:[{t:'Champagne da sole uve a bacca bianca (Chardonnay)',ok:true},{t:'Champagne da uve nere vinificate in bianco',ok:false},{t:'Champagne millesimato invecchiato ≥5 anni',ok:false},{t:'Champagne senza zucchero aggiunto',ok:false}] },
+    { tipo:'single', domanda:'Cosa indica "Blanc de Noirs" in Champagne?', opzioni:[{t:'Champagne bianco da uve a bacca nera (Pinot Nero e/o Meunier)',ok:true},{t:'Champagne rosato',ok:false},{t:'Champagne da solo Chardonnay',ok:false},{t:'Champagne non millesimato',ok:false}] },
+    { tipo:'multi', domanda:'Quali sono i dosaggi dello Champagne (dal più secco al più dolce)?', opzioni:[{t:'Brut Nature',ok:true},{t:'Extra Brut',ok:true},{t:'Brut',ok:true},{t:'Extra Dry',ok:true},{t:'Sec',ok:true},{t:'Demi-Sec',ok:true},{t:'Doux',ok:true},{t:'Ultra Brut',ok:false},{t:'Grand Sec',ok:false}] },
+    { tipo:'single', domanda:'Cosa significa "NM" sull\'etichetta Champagne?', opzioni:[{t:'Négociant-Manipulant: acquista uve o mosti e produce Champagne',ok:true},{t:'Non-Millésimé',ok:false},{t:'Nouveau Millésime',ok:false},{t:'Négociant-Maison',ok:false}] },
+    { tipo:'single', domanda:'Cosa significa "RM" sull\'etichetta Champagne?', opzioni:[{t:'Récoltant-Manipulant: vigneron che produce il proprio Champagne dalle proprie uve',ok:true},{t:'Réserve Millésimée',ok:false},{t:'Rosé Millésimé',ok:false},{t:'Récoltant-Marque',ok:false}] },
+    { tipo:'single', domanda:'Cosa distingue un Champagne Millésimé dal Non-Millésimé?', opzioni:[{t:'Il Millésimé usa uve di una sola annata eccezionale; il NM assembla più annate',ok:true},{t:'Il Millésimé è più dolce',ok:false},{t:'Il NM è di qualità superiore',ok:false},{t:'Il Millésimé usa solo Chardonnay',ok:false}] },
+    { tipo:'single', domanda:'In Champagne, cosa indica "Grand Cru" per un village?', opzioni:[{t:'Il villaggio otteneva il 100% nella scala Échelle des Crus',ok:true},{t:'Il villaggio produce solo Blanc de Blancs',ok:false},{t:'Il villaggio ha ≥500 ha di vigneti',ok:false},{t:'Il villaggio vende uve solo alle grandi Maisons',ok:false}] },
+  ],
+  'Alsazia': [
+    { tipo:'single', domanda:'Quanti Grand Cru esistono in Alsazia?', opzioni:[{t:'51',ok:true},{t:'33',ok:false},{t:'25',ok:false},{t:'12',ok:false}] },
+    { tipo:'multi', domanda:'Quali sono i 4 vitigni "nobles" per l\'Alsace Grand Cru?', opzioni:[{t:'Riesling',ok:true},{t:'Gewürztraminer',ok:true},{t:'Pinot Gris',ok:true},{t:"Muscat d'Alsace",ok:true},{t:'Sylvaner',ok:false},{t:'Pinot Blanc',ok:false},{t:'Auxerrois',ok:false}] },
+    { tipo:'single', domanda:'Cosa sono le "Vendanges Tardives" in Alsazia?', opzioni:[{t:'Vini da vendemmia tardiva con surmaturazione, stile dolce',ok:true},{t:'Vini spumanti metodo classico',ok:false},{t:'Vini rosati da Pinot Nero',ok:false},{t:'Vini da uve raccolte a gennaio',ok:false}] },
+    { tipo:'single', domanda:'La "Sélection de Grains Nobles" (SGN) è equivalente a quale stile tedesco?', opzioni:[{t:'Trockenbeerenauslese (TBA)',ok:true},{t:'Spätlese',ok:false},{t:'Kabinett',ok:false},{t:'Auslese',ok:false}] },
+    { tipo:'single', domanda:'Il Crémant d\'Alsace è prodotto con quale metodo?', opzioni:[{t:'Metodo classico (seconda fermentazione in bottiglia)',ok:true},{t:'Metodo Charmat (autoclave)',ok:false},{t:'Metodo ancestrale',ok:false},{t:'Carbonatazione artificiale',ok:false}] },
+  ],
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════
+let country = 'italia';
+let allClass = {}, allVitigniIdx = {};
+let mode = 'area', selected = '', checked = false;
+let score = {ok:0,ko:0,history:[]};
+let currentOptions = {}, selectedOpts = {}, selectedBacca = null;
+let sessionQueue = [], selectedAreale = '';
+let classifDomande = [], classifIndex = 0, classifRegione = '';
+
+function buildIndexes() {
+  allClass = {}; allVitigniIdx = {};
+  if (!DB || !DB.aree) return;
+  Object.entries(DB.aree).forEach(([area, data]) => {
+    if (data.class) data.class.forEach(c => { if (!allClass[c]) allClass[c]=[]; allClass[c].push(area); });
+  });
+  if (DB.vitigni) Object.entries(DB.vitigni).forEach(([v,data]) => { allVitigniIdx[v]=data; });
+}
+
+function setCountry(c) {
+  country = c; 
+  document.getElementById('btn-italia').classList.toggle('active', c==='italia');
+  document.getElementById('btn-francia').classList.toggle('active', c==='francia');
+  if (c==='francia' && mode==='class') mode='area';
+  sessionQueue=[]; selectedAreale=''; classifDomande=[]; classifIndex=0; classifRegione='';
+  document.getElementById('areale-wrap').style.display='none';
+
+  const panel = document.getElementById('main-panel');
+  if (!geoLoaded) {
+    panel.innerHTML='<div class="empty-state"><div class="empty-icon">⏳</div>Caricamento dati…</div>';
+    loadGeoSupabase().then(() => {
+      DB = c==='italia' ? DB_ITALIA : DB_FRANCIA;
+      buildIndexes(); renderTabs(); populateSelect();
+      selected=''; document.getElementById('main-select').value='';
+      resetScore(); renderMain();
+    });
+  } else {
+    DB = c==='italia' ? DB_ITALIA : DB_FRANCIA;
+    buildIndexes(); renderTabs(); populateSelect();
+    selected=''; document.getElementById('main-select').value='';
+    resetScore(); renderMain();
+  }
+}
+
+function renderTabs() {
+  if (!DB) return;
+  const t3 = country==='italia'
+    ? `<button class="tab ${mode==='class'?'active':''}" onclick="setMode('class')">${DB.classLabel}</button>`
+    : `<button class="tab ${mode==='classif'?'active':''}" onclick="setMode('classif')">Classif.</button>`;
+  document.getElementById('tab-group').innerHTML =
+    `<button class="tab ${mode==='area'?'active':''}" onclick="setMode('area')">Regione</button>
+     <button class="tab ${mode==='vitigno'?'active':''}" onclick="setMode('vitigno')">Vitigno</button>
+     ${t3}`;
+}
+
+function setMode(m) {
+  mode=m; sessionQueue=[]; selectedAreale=''; classifDomande=[]; classifIndex=0; classifRegione='';
+  document.getElementById('areale-wrap').style.display='none';
+  renderTabs(); populateSelect();
+  selected=''; document.getElementById('main-select').value=''; renderMain();
+}
+
+function populateSelect() {
+  const sel=document.getElementById('main-select');
+  sel.innerHTML='<option value="">— scegli —</option>';
+  let keys=[];
+  if (mode==='area') keys=Object.keys(DB.aree).sort();
+  else if (mode==='vitigno') keys=Object.keys(DB.vitigni).sort();
+  else if (mode==='class') keys=Object.keys(allClass).sort();
+  else if (mode==='classif') keys=Object.keys(DB_CLASSIF).sort();
+  keys.forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o); });
+}
+
+function onSelectChange() {
+  if (sezione==='produzione') {
+    prodCategoria=document.getElementById('main-select').value;
+    prodQueue=[]; prodSessioneErrori=[]; prodSessioneTot=0; checked=false; selectedOpts={};
+    renderProduzioneQuiz();
+    return;
+  }
+  selected=document.getElementById('main-select').value;
+  checked=false; selectedOpts={}; selectedBacca=null; selectedAreale='';
+  classifDomande=[]; classifIndex=0; classifRegione='';
+  if (country==='francia' && mode==='area' && selected) {
+    populateArealeSelect(selected);
+    document.getElementById('areale-wrap').style.display='block';
+    document.getElementById('areale-select').value='';
+  } else {
+    document.getElementById('areale-wrap').style.display='none';
+  }
+  renderMain();
+}
+
+function onArealeChange() {
+  selectedAreale=document.getElementById('areale-select').value;
+  checked=false; selectedOpts={}; selectedBacca=null;
+  renderMain();
+}
+
+function populateArealeSelect(reg) {
+  const sel=document.getElementById('areale-select');
+  sel.innerHTML='<option value="">— scegli areale —</option>';
+  const areali=DB.aree[reg] && DB.aree[reg].areali ? Object.keys(DB.aree[reg].areali) : [];
+  areali.forEach(a=>{ const o=document.createElement('option'); o.value=a; o.textContent=a; sel.appendChild(o); });
+}
+
+function renderMain() {
+  if (sezione==='produzione') { renderProduzioneQuiz(); return; }
+  const panel=document.getElementById('main-panel');
+  if (!selected) { panel.innerHTML='<div class="empty-state"><div class="empty-icon">🍇</div>Seleziona una voce a sinistra per iniziare</div>'; return; }
+  if (mode==='area') {
+    if (country==='francia') { if (!selectedAreale) renderArealiFrancia(panel); else renderArealeVit(panel); }
+    else renderAreaItalia(panel);
+  } else if (mode==='vitigno') renderVitignoQuiz(panel);
+  else if (mode==='class') renderClassQuiz(panel);
+  else if (mode==='classif') renderClassifQuiz(panel);
+}
+
+function shuffle(arr) { const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+// ── Italia: regione ────────────────────────────
+function renderAreaItalia(panel) {
+  const data=DB.aree[selected];
+  const correctClass=data.class, correctVit=data.vitigni;
+  const wrongClass=shuffle(Object.keys(allClass).filter(d=>!correctClass.includes(d))).slice(0,Math.min(6,correctClass.length+5));
+  const wrongVit=shuffle(Object.keys(DB.vitigni).filter(v=>!correctVit.includes(v))).slice(0,Math.min(6,correctVit.length+4));
+  const clsOpts=shuffle([...correctClass.map(d=>({v:d,ok:true})),...wrongClass.map(d=>({v:d,ok:false}))]);
+  const vitOpts=shuffle([...correctVit.map(v=>({v,ok:true})),...wrongVit.map(v=>({v,ok:false}))]);
+  currentOptions={cls:clsOpts,vit:vitOpts}; selectedOpts={cls:new Set(),vit:new Set()};
+  const clsHtml=correctClass.length===0
+    ? '<p style="font-size:12px;color:var(--text-tertiary);padding:6px 0">Nessuna DOCG per questa regione.</p>'
+    : clsOpts.map((o,i)=>`<div class="option-item" id="cls-${i}" onclick="togOpt('cls',${i})"><div class="option-check" id="cls-check-${i}"></div><span>${o.v}</span></div>`).join('');
+  panel.innerHTML=`
+    <div class="question-label">Seleziona le <strong>DOCG</strong> e i <strong>vitigni principali</strong> di: <strong>${selected}</strong></div>
+    <div class="section-block"><div class="section-title">DOCG (${correctClass.length})</div><div class="options-grid">${clsHtml}</div></div>
+    <div class="section-block"><div class="section-title">Vitigni (${correctVit.length})</div><div class="options-grid">${vitOpts.map((o,i)=>`<div class="option-item" id="vit-${i}" onclick="togOpt('vit',${i})"><div class="option-check" id="vit-check-${i}"></div><span>${o.v}</span></div>`).join('')}</div></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="actions"><button class="btn primary" onclick="checkAreaItalia()">verifica</button><button class="btn" id="next-btn" style="display:none" onclick="nextQ()">prossima →</button></div>`;
+}
+function togOpt(type,i) {
+  if(checked)return;
+  const el=document.getElementById(type+'-'+i),chk=document.getElementById(type+'-check-'+i);
+  if(selectedOpts[type].has(i)){selectedOpts[type].delete(i);el.classList.remove('selected');chk.textContent='';}
+  else{selectedOpts[type].add(i);el.classList.add('selected');chk.textContent='✓';}
+}
+function checkAreaItalia() {
+  checked=true; let ok=true;
+  [['cls',currentOptions.cls],['vit',currentOptions.vit]].forEach(([type,opts])=>{
+    opts.forEach((o,i)=>{
+      const el=document.getElementById(type+'-'+i),chk=document.getElementById(type+'-check-'+i),sel=selectedOpts[type].has(i);
+      if(o.ok&&sel){el.classList.remove('selected');el.classList.add('correct');chk.textContent='✓';}
+      else if(o.ok&&!sel){el.classList.add('missed');chk.textContent='✓';ok=false;}
+      else if(!o.ok&&sel){el.classList.remove('selected');el.classList.add('wrong');chk.textContent='✗';ok=false;}
+    });
+  });
+  feedback(ok);
+}
+
+// ── Francia: regione → areali ──────────────────
+function renderArealiFrancia(panel) {
+  const areali=Object.keys(DB.aree[selected].areali);
+  const allA=Object.values(DB.aree).flatMap(r=>Object.keys(r.areali||{}));
+  const wrong=shuffle(allA.filter(a=>!areali.includes(a))).slice(0,Math.min(6,areali.length+4));
+  const opts=shuffle([...areali.map(a=>({v:a,ok:true})),...wrong.map(a=>({v:a,ok:false}))]);
+  currentOptions={areali:opts}; selectedOpts={areali:new Set()};
+  panel.innerHTML=`
+    <div class="question-label">Seleziona tutti gli <strong>areali</strong> della regione: <strong>${selected}</strong></div>
+    <div class="options-grid">${opts.map((o,i)=>`<div class="option-item" id="ar-${i}" onclick="togAreale(${i})"><div class="option-check" id="ar-check-${i}"></div><span>${o.v}</span></div>`).join('')}</div>
+    <div class="feedback" id="feedback"></div>
+    <div class="actions"><button class="btn primary" onclick="checkAreali()">verifica</button><button class="btn" id="next-btn" style="display:none" onclick="nextQ()">prossima →</button></div>`;
+}
+function togAreale(i) {
+  if(checked)return;
+  const el=document.getElementById('ar-'+i),chk=document.getElementById('ar-check-'+i);
+  if(selectedOpts.areali.has(i)){selectedOpts.areali.delete(i);el.classList.remove('selected');chk.textContent='';}
+  else{selectedOpts.areali.add(i);el.classList.add('selected');chk.textContent='✓';}
+}
+function checkAreali() {
+  checked=true; let ok=true;
+  currentOptions.areali.forEach((o,i)=>{
+    const el=document.getElementById('ar-'+i),chk=document.getElementById('ar-check-'+i),sel=selectedOpts.areali.has(i);
+    if(o.ok&&sel){el.classList.remove('selected');el.classList.add('correct');chk.textContent='✓';}
+    else if(o.ok&&!sel){el.classList.add('missed');chk.textContent='✓';ok=false;}
+    else if(!o.ok&&sel){el.classList.remove('selected');el.classList.add('wrong');chk.textContent='✗';ok=false;}
+  });
+  feedback(ok);
+}
+
+// ── Francia: areale → vitigni ──────────────────
+function renderArealeVit(panel) {
+  const correctVit=DB.aree[selected].areali[selectedAreale].vitigni;
+  const wrong=shuffle(Object.keys(DB.vitigni).filter(v=>!correctVit.includes(v))).slice(0,Math.min(6,correctVit.length+4));
+  const vitOpts=shuffle([...correctVit.map(v=>({v,ok:true})),...wrong.map(v=>({v,ok:false}))]);
+  currentOptions={vit:vitOpts}; selectedOpts={vit:new Set()};
+  panel.innerHTML=`
+    <div class="question-label">Vitigni principali dell'areale: <strong>${selectedAreale}</strong> (${selected})</div>
+    <div class="options-grid">${vitOpts.map((o,i)=>`<div class="option-item" id="vit-${i}" onclick="togOpt('vit',${i})"><div class="option-check" id="vit-check-${i}"></div><span>${o.v}</span></div>`).join('')}</div>
+    <div class="feedback" id="feedback"></div>
+    <div class="actions"><button class="btn primary" onclick="checkVitSimple()">verifica</button><button class="btn" id="next-btn" style="display:none" onclick="nextAreale()">prossimo areale →</button></div>`;
+}
+function checkVitSimple() {
+  checked=true; let ok=true;
+  currentOptions.vit.forEach((o,i)=>{
+    const el=document.getElementById('vit-'+i),chk=document.getElementById('vit-check-'+i),sel=selectedOpts.vit&&selectedOpts.vit.has(i);
+    if(o.ok&&sel){el.classList.remove('selected');el.classList.add('correct');chk.textContent='✓';}
+    else if(o.ok&&!sel){el.classList.add('missed');chk.textContent='✓';ok=false;}
+    else if(!o.ok&&sel){el.classList.remove('selected');el.classList.add('wrong');chk.textContent='✗';ok=false;}
+  });
+  feedback(ok);
+}
+function nextAreale() {
+  checked=false; selectedOpts={}; selectedBacca=null;
+  const sel=document.getElementById('areale-select');
+  const opts=Array.from(sel.options).filter(o=>o.value).map(o=>o.value);
+  if(opts.length>1){let cur=sel.value,next;do{next=opts[Math.floor(Math.random()*opts.length)];}while(next===cur&&opts.length>1);sel.value=next;selectedAreale=next;}
+  renderMain();
+}
+
+// ── Vitigno ────────────────────────────────────
+function renderVitignoQuiz(panel) {
+  const vdata=DB.vitigni[selected];
+  const correctR=vdata.regioni, correctB=vdata.bacca;
+  const correctD=(country==='italia'&&vdata.docg)||[];
+  const allRKeys=Object.keys(DB.aree);
+  const wrongR=shuffle(allRKeys.filter(r=>!correctR.includes(r))).slice(0,Math.min(8,allRKeys.length-correctR.length));
+  const regionOpts=shuffle([...correctR.map(r=>({v:r,ok:true})),...wrongR.map(r=>({v:r,ok:false}))]);
+  let docgOpts=[];
+  if(country==='italia') {
+    const allCls=Object.keys(allClass);
+    const wrongD=shuffle(allCls.filter(d=>!correctD.includes(d))).slice(0,Math.min(6,correctD.length+4));
+    docgOpts=shuffle([...correctD.map(d=>({v:d,ok:true})),...wrongD.map(d=>({v:d,ok:false}))]);
+  }
+  currentOptions={regions:regionOpts,docg:docgOpts,bacca:correctB};
+  selectedOpts={reg:new Set(),docg:new Set()}; selectedBacca=null;
+
+  const note=country==='italia'?'regioni, colore bacca e principali DOCG':'regioni e colore bacca';
+  let docgSection='';
+  if(country==='italia') {
+    const docgHtml=correctD.length===0
+      ?'<p style="font-size:12px;color:var(--text-tertiary);padding:6px 0">Nessuna DOCG principale.</p>'
+      :docgOpts.map((o,i)=>`<div class="option-item" id="docg-${i}" onclick="togDocg(${i})"><div class="option-check" id="docg-check-${i}"></div><span>${o.v}</span></div>`).join('');
+    docgSection=`<div class="section-block"><div class="section-title">DOCG (${correctD.length})</div><div class="options-grid">${docgHtml}</div></div>`;
+  }
+  panel.innerHTML=`
+    <div class="question-label">Per <strong>${selected}</strong> indica: ${note}.</div>
+    <div class="section-block"><div class="section-title">Regioni (${correctR.length})</div><div class="regions-grid">${regionOpts.map((o,i)=>`<div class="region-option" id="reg-${i}" onclick="togReg(${i})">${o.v}</div>`).join('')}</div></div>
+    <div class="section-block"><div class="section-title">Colore della bacca</div><div class="bacca-group"><button class="bacca-btn" id="bacca-B" onclick="selBacca('B')">🍇 Bacca Bianca</button><button class="bacca-btn" id="bacca-N" onclick="selBacca('N')">🍇 Bacca Nera</button></div></div>
+    ${docgSection}
+    <div class="feedback" id="feedback"></div>
+    <div class="actions"><button class="btn primary" onclick="checkVitigno()">verifica</button><button class="btn" id="next-btn" style="display:none" onclick="nextQ()">prossima →</button></div>`;
+}
+function togReg(i){if(checked)return;const el=document.getElementById('reg-'+i);if(selectedOpts.reg.has(i)){selectedOpts.reg.delete(i);el.classList.remove('selected');}else{selectedOpts.reg.add(i);el.classList.add('selected');}}
+function togDocg(i){if(checked)return;const el=document.getElementById('docg-'+i),chk=document.getElementById('docg-check-'+i);if(selectedOpts.docg.has(i)){selectedOpts.docg.delete(i);el.classList.remove('selected');chk.textContent='';}else{selectedOpts.docg.add(i);el.classList.add('selected');chk.textContent='✓';}}
+function selBacca(b){if(checked)return;selectedBacca=b;['B','N'].forEach(x=>{document.getElementById('bacca-'+x).classList.toggle('selected',x===b);});}
+function checkVitigno() {
+  checked=true; let ok=true;
+  currentOptions.regions.forEach((o,i)=>{const el=document.getElementById('reg-'+i),sel=selectedOpts.reg.has(i);if(o.ok&&sel){el.classList.remove('selected');el.classList.add('correct');}else if(o.ok&&!sel){el.classList.add('missed');ok=false;}else if(!o.ok&&sel){el.classList.remove('selected');el.classList.add('wrong');ok=false;}});
+  const cb=currentOptions.bacca;
+  ['B','N'].forEach(b=>{const el=document.getElementById('bacca-'+b);if(!el)return;if(b===cb&&b===selectedBacca){el.classList.remove('selected');el.classList.add('correct');}else if(b===cb&&b!==selectedBacca){el.classList.add('missed');ok=false;}else if(b!==cb&&b===selectedBacca){el.classList.remove('selected');el.classList.add('wrong');ok=false;}});
+  if(country==='italia'&&currentOptions.docg.length>0){currentOptions.docg.forEach((o,i)=>{const el=document.getElementById('docg-'+i),chk=document.getElementById('docg-check-'+i),sel=selectedOpts.docg.has(i);if(o.ok&&sel){el.classList.remove('selected');el.classList.add('correct');chk.textContent='✓';}else if(o.ok&&!sel){el.classList.add('missed');chk.textContent='✓';ok=false;}else if(!o.ok&&sel){el.classList.remove('selected');el.classList.add('wrong');chk.textContent='✗';ok=false;}});}
+  feedback(ok);
+}
+
+// ── Italia: DOCG → regione ─────────────────────
+function renderClassQuiz(panel) {
+  const correctA=allClass[selected];
+  const allKeys=Object.keys(DB.aree);
+  const wrong=shuffle(allKeys.filter(r=>!correctA.includes(r))).slice(0,Math.min(9,allKeys.length-correctA.length));
+  const aOpts=shuffle([...correctA.map(r=>({v:r,ok:true})),...wrong.map(r=>({v:r,ok:false}))]);
+  currentOptions={regions:aOpts}; selectedOpts={reg:new Set()};
+  panel.innerHTML=`
+    <div class="question-label">La DOCG <strong>${selected}</strong> appartiene a quale regione?</div>
+    <div class="regions-grid">${aOpts.map((o,i)=>`<div class="region-option" id="reg-${i}" onclick="togReg(${i})">${o.v}</div>`).join('')}</div>
+    <div class="feedback" id="feedback"></div>
+    <div class="actions"><button class="btn primary" onclick="checkClass()">verifica</button><button class="btn" id="next-btn" style="display:none" onclick="nextQ()">prossima →</button></div>`;
+}
+function checkClass(){checked=true;let ok=true;currentOptions.regions.forEach((o,i)=>{const el=document.getElementById('reg-'+i),sel=selectedOpts.reg.has(i);if(o.ok&&sel){el.classList.remove('selected');el.classList.add('correct');}else if(o.ok&&!sel){el.classList.add('missed');ok=false;}else if(!o.ok&&sel){el.classList.remove('selected');el.classList.add('wrong');ok=false;}});feedback(ok);}
+
+// ── Francia: classificazioni ───────────────────
+function renderClassifQuiz(panel) {
+  if(!selected){panel.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>Seleziona una regione</div>';return;}
+  if(classifRegione!==selected){classifRegione=selected;classifDomande=shuffle([...DB_CLASSIF[selected]]);classifIndex=0;}
+  if(classifIndex>=classifDomande.length){classifDomande=shuffle([...DB_CLASSIF[selected]]);classifIndex=0;}
+  const q=classifDomande[classifIndex];
+  const opts=shuffle(q.opzioni.map(o=>({...o})));
+  currentOptions={opts,tipo:q.tipo}; selectedOpts={cls:new Set()};
+  const nOk=q.opzioni.filter(o=>o.ok).length;
+  const hint=q.tipo==='multi'?`<span class="prog-badge">(${nOk} risposte corrette)</span>`:'';
+  const prog=`<span class="prog-badge">${classifIndex+1} / ${classifDomande.length}</span>`;
+  panel.innerHTML=`
+    <div class="question-label"><strong>${selected}</strong> — Classificazioni ${prog}</div>
+    <div class="question-label">${q.domanda} ${hint}</div>
+    <div class="options-grid">${opts.map((o,i)=>`<div class="option-item" id="cq-${i}" onclick="togClassif(${i})"><div class="option-check" id="cq-check-${i}"></div><span>${o.t}</span></div>`).join('')}</div>
+    <div class="feedback" id="feedback"></div>
+    <div class="actions"><button class="btn primary" onclick="checkClassif()">verifica</button><button class="btn" id="next-btn" style="display:none" onclick="nextClassif()">prossima →</button></div>`;
+}
+function togClassif(i){
+  if(checked)return;
+  if(currentOptions.tipo==='single'){currentOptions.opts.forEach((_,j)=>{document.getElementById('cq-'+j).classList.remove('selected');document.getElementById('cq-check-'+j).textContent='';});selectedOpts.cls.clear();selectedOpts.cls.add(i);document.getElementById('cq-'+i).classList.add('selected');document.getElementById('cq-check-'+i).textContent='✓';}
+  else{const el=document.getElementById('cq-'+i),chk=document.getElementById('cq-check-'+i);if(selectedOpts.cls.has(i)){selectedOpts.cls.delete(i);el.classList.remove('selected');chk.textContent='';}else{selectedOpts.cls.add(i);el.classList.add('selected');chk.textContent='✓';}}
+}
+function checkClassif(){
+  checked=true;let ok=true;
+  currentOptions.opts.forEach((o,i)=>{const el=document.getElementById('cq-'+i),chk=document.getElementById('cq-check-'+i),sel=selectedOpts.cls.has(i);if(o.ok&&sel){el.classList.remove('selected');el.classList.add('correct');chk.textContent='✓';}else if(o.ok&&!sel){el.classList.add('missed');chk.textContent='✓';ok=false;}else if(!o.ok&&sel){el.classList.remove('selected');el.classList.add('wrong');chk.textContent='✗';ok=false;}});
+  feedback(ok);
+}
+function nextClassif(){checked=false;selectedOpts={};classifIndex++;renderMain();}
+
+// ── Feedback & navigazione ─────────────────────
+function feedback(ok) {
+  const fb=document.getElementById('feedback');
+  if(ok){fb.className='feedback correct';fb.textContent='✓ Perfetto! Tutte le risposte corrette.';score.ok++;score.history.push(true);}
+  else{fb.className='feedback wrong';fb.textContent='✗ Non esatto. Verde = corretto · Giallo = mancato · Rosso = sbagliato.';score.ko++;score.history.push(false);}
+  updateScore();
+  document.querySelectorAll('[id^="check-btn"]').forEach(b=>b.style.display='none');
+  const nb=document.getElementById('next-btn');if(nb)nb.style.display='inline-block';
+}
+function nextQ(){
+  checked=false;selectedOpts={};selectedBacca=null;
+  const sel=document.getElementById('main-select');
+  const opts=Array.from(sel.options).filter(o=>o.value).map(o=>o.value);
+  if(opts.length<=1){renderMain();return;}
+  if(sessionQueue.length===0||(sessionQueue.length===1&&sessionQueue[0]===selected))sessionQueue=shuffle(opts.filter(v=>v!==selected));
+  const next=sessionQueue.shift();sel.value=next;selected=next;
+  if(country==='francia'&&mode==='area'){populateArealeSelect(next);document.getElementById('areale-select').value='';selectedAreale='';}
+  renderMain();
+}
+function resetScore(){score={ok:0,ko:0,history:[]};sessionQueue=[];updateScore();}
+function updateScore(){document.getElementById('score-text').textContent=`${score.ok} / ${score.ok+score.ko}`;document.getElementById('score-pills').innerHTML=score.history.slice(-12).map(h=>`<div class="pill ${h?'ok':'ko'}"></div>`).join('');}
+
+// ─── INIT rimandato al login ────────────────────
+// (inizializzazione avviene in initApp() dopo il login)
+
+// ═══════════════════════════════════════════════════════════════
+//  DATABASE PRODUZIONE
+//  VF = vero/falso  SM = scelta multipla
+// ═══════════════════════════════════════════════════════════════
+// ── Supabase config ────────────────────────────
+var _SUPABASE_URL = 'https://ypqgmwcrnhxfdfkfjivc.supabase.co';
+var _SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcWdtd2Nybmh4ZmRma2ZqaXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3MTcsImV4cCI6MjA5NDM5OTcxN30.gOVk3CjeT20MeZORLUFvL4Jd1FXJJSSRczUmUUANxXY';
+
+// Cache delle domande caricate da Supabase
+let DB_PRODUZIONE = {};
+let supabaseLoaded = false;
+let supabaseLoading = false;
+
+async function loadDomandeSupabase() {
+  if (supabaseLoaded || supabaseLoading) return;
+  supabaseLoading = true;
+  try {
+    // Carica tutte le domande
+    const rDom = await fetch(
+      SUPABASE_URL + '/rest/v1/domande?select=*&order=categoria,id',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    const domande = await rDom.json();
+
+    // Carica tutte le opzioni
+    const rOpt = await fetch(
+      SUPABASE_URL + '/rest/v1/opzioni?select=*&order=domanda_id,ordine',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    const opzioni = await rOpt.json();
+
+    // Mappa opzioni per domanda_id
+    const opzMap = {};
+    for (const op of opzioni) {
+      if (!opzMap[op.domanda_id]) opzMap[op.domanda_id] = [];
+      opzMap[op.domanda_id].push(op);
+    }
+
+    // Costruisce DB_PRODUZIONE
+    DB_PRODUZIONE = {};
+    for (const d of domande) {
+      if (!DB_PRODUZIONE[d.categoria]) {
+        DB_PRODUZIONE[d.categoria] = { tipo: 'misto', domande: [] };
+      }
+      const item = { id: d.id, tipo: d.tipo, d: d.domanda, ok: d.risposta_corretta, sp: d.spiegazione };
+      if (d.tipo === 'sm') {
+        item.ops = (opzMap[d.id] || []).map(op => ({ t: op.testo, ok: op.corretta }));
+      }
+      DB_PRODUZIONE[d.categoria].domande.push(item);
+    }
+    supabaseLoaded = true;
+    console.log('Supabase: caricate', domande.length, 'domande in', Object.keys(DB_PRODUZIONE).length, 'categorie');
+  } catch(e) {
+    console.error('Errore caricamento Supabase:', e);
+  }
+  supabaseLoading = false;
+}
+
+let sezione = 'italia';
+let prodCategoria = '';
+let prodQueue = [];
+let prodSessioneErrori = []; // domande sbagliate nella sessione corrente
+let prodSessioneTot = 0;     // totale domande nella sessione corrente
+
+function renderProduzioneQuiz() {
+  const panel=document.getElementById('main-panel');
+  if (!prodCategoria) { panel.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>Seleziona una categoria a sinistra</div>'; return; }
+  const cat=DB_PRODUZIONE[prodCategoria];
+  if (!cat) return;
+
+  // Inizio nuovo mazzo
+  if (prodQueue.length===0 && prodSessioneTot===0) {
+    prodQueue=shuffle([...cat.domande]);
+    prodSessioneErrori=[];
+  }
+
+  // Fine mazzo — mostra riepilogo
+  if (prodQueue.length===0) {
+    renderRiepilogo(panel);
+    return;
+  }
+
+  prodSessioneTot++;
+  const q=prodQueue.shift();
+  checked=false; selectedOpts={sel:null, multi:new Set()};
+  if (q.tipo==='vf') renderVF(panel, q);
+  else renderSM(panel, q);
+}
+
+function renderVF(panel, q) {
+  const total=DB_PRODUZIONE[prodCategoria].domande.length;
+  const prog=`<span class="prog-badge">${total-prodQueue.length} / ${total}</span>`;
+  currentOptions={tipo:'vf', ok:q.ok, sp:q.sp||null, domanda_id:q.id||null};
+  panel.innerHTML=`
+    <div class="question-label"><strong>${prodCategoria}</strong> ${prog}</div>
+    <div class="question-label" style="margin-top:4px">${q.d}</div>
+    <div class="bacca-group" style="margin-top:4px">
+      <button class="bacca-btn" id="vf-V" onclick="selVF(true)">✓ Vero</button>
+      <button class="bacca-btn" id="vf-F" onclick="selVF(false)">✗ Falso</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div id="spiegazione-box" style="display:none;font-size:13px;padding:9px 13px;border-radius:var(--radius-md);background:var(--blue-bg);color:var(--blue-text);line-height:1.6"></div>
+    <div class="actions" style="margin-top:4px"><button class="btn primary" onclick="checkVF()">verifica</button><button class="btn" id="next-btn" style="display:none" onclick="renderProduzioneQuiz()">prossima →</button></div>`;
+}
+function selVF(v) {
+  if(checked)return;
+  selectedOpts.sel=v;
+  document.getElementById('vf-V').classList.toggle('selected',v===true);
+  document.getElementById('vf-F').classList.toggle('selected',v===false);
+}
+function checkVF() {
+  checked=true;
+  const correct=currentOptions.ok, userV=selectedOpts.sel;
+  const elV=document.getElementById('vf-V'), elF=document.getElementById('vf-F');
+  elV.classList.remove('selected'); elF.classList.remove('selected');
+  if(correct===true){elV.classList.add('correct');if(userV===false)elF.classList.add('wrong');}
+  else{elF.classList.add('correct');if(userV===true)elV.classList.add('wrong');}
+  if(userV===null){correct===true?elV.classList.replace('correct','missed'):elF.classList.replace('correct','missed');}
+  const ok=userV===correct&&userV!==null;
+  // Show spiegazione always after verifica
+  if (currentOptions.sp) {
+    const box=document.getElementById('spiegazione-box');
+    box.style.display='block';
+    const icon = ok ? '✅' : '💡';
+    const label = ok ? '<strong>Esatto!</strong> ' : '<strong>Risposta corretta:</strong> ';
+    box.innerHTML = icon + ' ' + label + currentOptions.sp;
+  }
+  feedback(ok);
+}
+
+function renderSM(panel, q) {
+  const opts=shuffle(q.ops.map(o=>({...o})));
+  currentOptions={tipo:'sm', opts, domanda_id:q.id||null};
+  selectedOpts={multi:new Set()};
+  const nOk=q.ops.filter(o=>o.ok).length;
+  const hint=nOk>1?`<span class="prog-badge">(${nOk} risposte corrette)</span>`:'';
+  const total=DB_PRODUZIONE[prodCategoria].domande.length;
+  const prog=`<span class="prog-badge">${total-prodQueue.length} / ${total}</span>`;
+  panel.innerHTML=`
+    <div class="question-label"><strong>${prodCategoria}</strong> ${prog}</div>
+    <div class="question-label" style="margin-top:4px">${q.d} ${hint}</div>
+    <div class="options-grid" style="margin-top:4px">${opts.map((o,i)=>`<div class="option-item" id="sm-${i}" onclick="togSM(${i})"><div class="option-check" id="sm-check-${i}"></div><span>${o.t}</span></div>`).join('')}</div>
+    <div class="feedback" id="feedback"></div>
+    <div class="actions" style="margin-top:4px"><button class="btn primary" onclick="checkSM()">verifica</button><button class="btn" id="next-btn" style="display:none" onclick="renderProduzioneQuiz()">prossima →</button></div>`;
+}
+function togSM(i){
+  if(checked)return;
+  const el=document.getElementById('sm-'+i),chk=document.getElementById('sm-check-'+i);
+  if(selectedOpts.multi.has(i)){selectedOpts.multi.delete(i);el.classList.remove('selected');chk.textContent='';}
+  else{selectedOpts.multi.add(i);el.classList.add('selected');chk.textContent='✓';}
+}
+function checkSM(){
+  checked=true; let ok=true;
+  currentOptions.opts.forEach((o,i)=>{
+    const el=document.getElementById('sm-'+i),chk=document.getElementById('sm-check-'+i),sel=selectedOpts.multi.has(i);
+    if(o.ok&&sel){el.classList.remove('selected');el.classList.add('correct');chk.textContent='✓';}
+    else if(o.ok&&!sel){el.classList.add('missed');chk.textContent='✓';ok=false;}
+    else if(!o.ok&&sel){el.classList.remove('selected');el.classList.add('wrong');chk.textContent='✗';ok=false;}
+  });
+  feedback(ok);
+}
+
+
+function renderRiepilogo(panel) {
+  const tot = prodSessioneTot;
+  const err = prodSessioneErrori.length;
+  const ok  = tot - err;
+  const pct = Math.round(100 * ok / tot);
+  const color = pct>=70 ? 'var(--green-text)' : pct>=50 ? 'var(--yellow-text)' : 'var(--red-text)';
+  const emoji = pct>=70 ? '🎉' : pct>=50 ? '👍' : '💪';
+
+  let html = `
+    <div style="text-align:center; padding:1.5rem 1rem;">
+      <div style="font-size:36px; margin-bottom:.5rem">${emoji}</div>
+      <h3 style="font-size:18px; font-weight:500; margin-bottom:.25rem">${prodCategoria}</h3>
+      <p style="font-size:13px; color:var(--text-secondary); margin-bottom:1.5rem">Sessione completata</p>
+      <div style="display:flex; gap:1rem; justify-content:center; margin-bottom:1.5rem; flex-wrap:wrap;">
+        <div style="text-align:center; background:var(--bg-secondary); border-radius:var(--radius-md); padding:.75rem 1.25rem;">
+          <div style="font-size:24px; font-weight:600; color:var(--green-text)">${ok}</div>
+          <div style="font-size:11px; color:var(--text-tertiary)">CORRETTE</div>
+        </div>
+        <div style="text-align:center; background:var(--bg-secondary); border-radius:var(--radius-md); padding:.75rem 1.25rem;">
+          <div style="font-size:24px; font-weight:600; color:var(--red-text)">${err}</div>
+          <div style="font-size:11px; color:var(--text-tertiary)">ERRATE</div>
+        </div>
+        <div style="text-align:center; background:var(--bg-secondary); border-radius:var(--radius-md); padding:.75rem 1.25rem;">
+          <div style="font-size:24px; font-weight:600; color:${color}">${pct}%</div>
+          <div style="font-size:11px; color:var(--text-tertiary)">PUNTEGGIO</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:.75rem; justify-content:center; flex-wrap:wrap;">
+        ${err > 0 ? `<button class="btn primary" onclick="showRipassa()">🔁 Ripassa gli errori (${err})</button>` : ''}
+        <button class="btn" onclick="ricominciaMazzo()">↺ Ricomincia dall'inizio</button>
+        <button class="btn" onclick="showApp()">← Torna al quiz</button>
+      </div>
+    </div>`;
+
+  if (err > 0) {
+    html += `<div style="margin-top:1rem; padding:0 1rem 1rem;">
+      <div style="font-size:12px; font-weight:500; color:var(--text-tertiary); margin-bottom:.5rem; text-transform:uppercase; letter-spacing:.06em;">Domande sbagliate</div>`;
+    for (const q of prodSessioneErrori) {
+      html += `<div style="font-size:13px; padding:8px 12px; background:var(--red-bg); color:var(--red-text); border-radius:var(--radius-md); margin-bottom:6px;">${q.d}</div>`;
+    }
+    html += '</div>';
+  }
+  panel.innerHTML = html;
+}
+
+function ricominciaMazzo() {
+  prodQueue = [];
+  prodSessioneErrori = [];
+  prodSessioneTot = 0;
+  renderProduzioneQuiz();
+}
+
+
+function setSection(s) {
+  sezione = s;
+  ['italia','francia','produzione'].forEach(x => document.getElementById('btn-'+x).classList.toggle('active', x===s));
+  if (s==='produzione') {
+    document.getElementById('tab-group').innerHTML =
+      `<span style="font-size:11px;color:var(--text-tertiary);padding:4px 2px;display:flex;align-items:center">categoria →</span>`;
+    document.getElementById('areale-wrap').style.display='none';
+    selected=''; prodCategoria=''; prodQueue=[];
+    document.getElementById('main-select').value='';
+    // Carica da Supabase se non ancora fatto
+    const panel = document.getElementById('main-panel');
+    panel.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div>Caricamento domande…</div>';
+    loadDomandeSupabase().then(() => {
+      populateSelectProduzione();
+      panel.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>Seleziona una categoria a sinistra</div>';
+    });
+  } else {
+    setCountry(s);
+  }
+}
+
+function populateSelectProduzione() {
+  const sel=document.getElementById('main-select');
+  sel.innerHTML='<option value="">— scegli categoria —</option>';
+  Object.keys(DB_PRODUZIONE).forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o); });
+}
+
+
+// ─── INIT ──────────────────────────────────────
+document.getElementById('main-panel').innerHTML =
+  '<div class="empty-state"><div class="empty-icon">⏳</div>Caricamento dati…</div>';
+
+loadGeoSupabase().then(() => {
+  DB = DB_ITALIA;
+  country = 'italia';
+  buildIndexes();
+  renderTabs();
+  populateSelect();
+  document.getElementById('main-panel').innerHTML =
+    '<div class="empty-state"><div class="empty-icon">🍇</div>Seleziona una voce a sinistra per iniziare</div>';
+});
+
+
+// ══════════════════════════════════════════════
+// COMPETIZIONI
+// ══════════════════════════════════════════════
+let compAttiva = null;        // competizione corrente
+let compQueue = [];           // domande della competizione
+let compIndex = 0;
+let compOk = 0; let compTot = 0;
+let compTimer = null;
+let compStartedAt = null;
+let compSecondiRimasti = 0;
+let compRisposta = null;      // record su competizioni_risposte
+
+async function showCompetizioni() {
+  showScreen('competizioni');
+  const el = document.getElementById('competizioni-content');
+  el.innerHTML = '<div class="empty-state">⏳ Caricamento…</div>';
+
+  const [comps, mieRisposte] = await Promise.all([
+    sbGet('/rest/v1/competizioni?select=*&order=created_at.desc', authToken),
+    sbGet('/rest/v1/competizioni_risposte?user_id=eq.'+currentUser.id+'&select=competizione_id,completata', authToken)
+  ]);
+
+  const partMap = Object.fromEntries((mieRisposte||[]).map(r=>[r.competizione_id, r.completata]));
+  const attive = (comps||[]).filter(c=>c.stato==='attiva' && new Date(c.scadenza) > new Date());
+  const chiuse = (comps||[]).filter(c=>c.stato==='chiusa' || new Date(c.scadenza) <= new Date());
+
+  let html = '';
+
+  // Admin: form crea competizione
+  if (currentProfile.ruolo === 'admin') {
+    html += `<div style="background:var(--bg-primary);border-radius:var(--radius-md);border:0.5px solid var(--blue-border);padding:1.25rem;margin-bottom:1.5rem;" id="comp-form-wrap">
+      <div class="empty-state">⏳ Caricamento categorie…</div>
+    </div>`;
+  }
+
+  if (attive.length) {
+    html += `<h3 style="font-size:14px;font-weight:500;margin-bottom:.75rem">🟢 Competizioni attive</h3>`;
+    for (const c of attive) {
+      const scadenza = new Date(c.scadenza).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      const partecipato = c.id in partMap;
+      const completato = partMap[c.id];
+      html += `<div style="background:var(--bg-primary);border-radius:var(--radius-md);border:0.5px solid var(--border-light);padding:1rem 1.25rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;">
+        <div>
+          <div style="font-size:15px;font-weight:500">${c.nome}</div>
+          <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px">${c.categoria} · ${c.n_domande} domande · ${c.durata_minuti} min · Scade: ${scadenza}</div>
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:center">
+          ${completato ? '<span style="font-size:12px;color:var(--green-text)">✓ Completata</span>' :
+            partecipato ? `<button class="btn primary" onclick="avviaCompetizione(${c.id})">▶ Continua</button>` :
+            `<button class="btn primary" onclick="mostraInvitoCompetizione(${c.id})"">🏆 Partecipa</button>`}
+          ${currentProfile.ruolo==='admin' ? `<button class="btn-sm" style="color:var(--red-text)" onclick="chiudiCompetizione(${c.id})">Chiudi</button>` : ''}
+        </div>
+      </div>`;
+    }
+  }
+
+  if (chiuse.length) {
+    html += `<h3 style="font-size:14px;font-weight:500;margin:.75rem 0">📊 Competizioni concluse</h3>`;
+    for (const c of chiuse) {
+      const scadenza = new Date(c.scadenza).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'});
+      html += `<div style="background:var(--bg-primary);border-radius:var(--radius-md);border:0.5px solid var(--border-light);padding:1rem 1.25rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;opacity:.8">
+        <div>
+          <div style="font-size:15px;font-weight:500">${c.nome}</div>
+          <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px">${c.categoria} · chiusa il ${scadenza}</div>
+        </div>
+        <button class="btn-sm" onclick="mostraClassifica(${c.id},'${c.nome.replace(/'/g,"\\'")}')">🏆 Classifica</button>
+      </div>`;
+    }
+  }
+
+  if (!attive.length && !chiuse.length) html += '<div class="empty-state">Nessuna competizione ancora creata.</div>';
+  el.innerHTML = html;
+
+  // Carica il form admin in modo asincrono
+  if (currentProfile.ruolo === 'admin') renderFormCreaCompetizione();
+}
+
+async function renderFormCreaCompetizione() {
+  // Carica categorie da Supabase se non ancora caricate
+  let catTeo = Object.keys(DB_PRODUZIONE||{}).filter(k=>!k.startsWith('🔁'));
+  if (!catTeo.length) {
+    const rows = await sbGet('/rest/v1/domande?select=categoria&order=categoria', authToken);
+    const uniq = [...new Set((rows||[]).map(r=>r.categoria).filter(Boolean))];
+    catTeo = uniq;
+  }
+  const catGeo = ['Vitigni Italia','Vitigni Francia','Regioni Italia','Regioni Francia'];
+  const allCat = [...catTeo, ...catGeo];
+
+  const checkboxes = allCat.map(c => `
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;padding:5px 0;cursor:pointer;">
+      <input type="checkbox" class="new-comp-cat-cb" value="${c}" style="width:15px;height:15px;cursor:pointer">
+      ${c}
+    </label>`).join('');
+
+  const el = document.getElementById('comp-form-wrap');
+  if (!el) return;
+  el.innerHTML = `
+    <h4 style="font-size:13px;font-weight:500;color:var(--blue-text);margin-bottom:1rem">⚙️ Crea nuova competizione</h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
+      <div class="field" style="grid-column:1/-1"><label>Nome</label><input type="text" id="new-comp-nome" placeholder="Es. Gara di Novembre"></div>
+      <div class="field"><label>Domande totali</label><input type="number" id="new-comp-ndom" value="20" min="5" max="100"></div>
+      <div class="field"><label>Durata (minuti)</label><input type="number" id="new-comp-durata" value="30" min="5" max="180"></div>
+      <div class="field" style="grid-column:1/-1"><label>Scadenza</label><input type="datetime-local" id="new-comp-scadenza"></div>
+    </div>
+    <div class="field" style="margin-bottom:.75rem">
+      <label>Categorie (seleziona una o più)</label>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:2px;max-height:240px;overflow-y:auto;background:var(--bg-secondary);border-radius:var(--radius-md);padding:10px;margin-top:6px;border:0.5px solid var(--border-mid)">
+        ${checkboxes}
+      </div>
+      <div style="margin-top:6px;display:flex;gap:.5rem">
+        <button class="btn-sm" onclick="selezionaTutteCat(true)">Tutte</button>
+        <button class="btn-sm" onclick="selezionaTutteCat(false)">Nessuna</button>
+      </div>
+    </div>
+    <button class="btn primary" onclick="creaCompetizione()">✓ Crea competizione</button>`;
+}
+
+function selezionaTutteCat(val) {
+  document.querySelectorAll('.new-comp-cat-cb').forEach(cb => cb.checked=val);
+}
+
+async function creaCompetizione() {
+  const nome = document.getElementById('new-comp-nome').value.trim();
+  const nDom = parseInt(document.getElementById('new-comp-ndom').value);
+  const dur  = parseInt(document.getElementById('new-comp-durata').value);
+  const scad = document.getElementById('new-comp-scadenza').value;
+  const catSel = [...document.querySelectorAll('.new-comp-cat-cb:checked')].map(cb=>cb.value);
+  if (!nome || !scad) { alert('Compila nome e scadenza'); return; }
+  if (!catSel.length) { alert('Seleziona almeno una categoria'); return; }
+
+  const tipoMap = {'Vitigni Italia':'vitigni_italia','Vitigni Francia':'vitigni_francia','Regioni Italia':'regioni_italia','Regioni Francia':'regioni_francia'};
+  const nPerCat = Math.ceil(nDom / catSel.length);
+  let pool = [];
+
+  // Separa categorie teoriche da geo
+  const catTeo = catSel.filter(c => !tipoMap[c]);
+  const catGeo = catSel.filter(c => tipoMap[c]);
+
+  // Carica domande teoriche direttamente da Supabase
+  if (catTeo.length) {
+    const rows = await sbGet(
+      `/rest/v1/domande?categoria=in.(${catTeo.map(c=>`"${c}"`).join(',')})&select=id,categoria,tipo`,
+      authToken
+    );
+    // Raggruppa per categoria e prendi nPerCat per ognuna
+    const perCat = {};
+    for (const r of (rows||[])) {
+      if (!perCat[r.categoria]) perCat[r.categoria] = [];
+      perCat[r.categoria].push(r);
+    }
+    for (const cat of catTeo) {
+      const domCat = shuffle([...(perCat[cat]||[])]).slice(0, nPerCat);
+      domCat.forEach(d => pool.push({id: d.id, tipo: 'teorica', cat}));
+    }
+  }
+
+  // Genera domande geo
+  for (const cat of catGeo) {
+    const tipo = tipoMap[cat];
+    const paese = tipo.includes('italia') ? 'italia' : 'francia';
+    const isTipoVit = tipo.includes('vitigni');
+    const db = paese === 'italia' ? DB_ITALIA : DB_FRANCIA;
+    const items = isTipoVit ? Object.keys(db?.vitigni||{}) : Object.keys(db?.aree||{});
+    shuffle([...items]).slice(0, nPerCat).forEach(entita =>
+      pool.push({id: entita, tipo, paese, entita, cat})
+    );
+  }
+
+  pool = shuffle(pool).slice(0, nDom);
+
+  if (!pool.length) {
+    alert('Nessuna domanda trovata per le categorie selezionate. Assicurati che il quiz geografico sia caricato.');
+    return;
+  }
+
+  const res = await sbPost('/rest/v1/competizioni', {
+    nome, categoria: catSel.join(', '), tipo_categoria: 'misto',
+    n_domande: pool.length, durata_minuti: dur,
+    scadenza: new Date(scad).toISOString(),
+    creata_da: currentUser.id,
+    domande_ids: JSON.stringify(pool),
+    stato: 'attiva'
+  }, authToken);
+
+  if (res && !res.code) { showCompetizioni(); }
+  else { alert('Errore: ' + JSON.stringify(res)); }
+}
+
+
+async function chiudiCompetizione(id) {
+  if (!confirm('Chiudi questa competizione? La classifica diventerà visibile a tutti.')) return;
+  await sbPatch('/rest/v1/competizioni?id=eq.'+id, {stato:'chiusa'}, authToken);
+  showCompetizioni();
+}
+
+async function mostraInvitoCompetizione(id) {
+  const comps = await sbGet('/rest/v1/competizioni?id=eq.'+id, authToken);
+  const c = comps?.[0]; if (!c) return;
+  compAttiva = c;
+  document.getElementById('comp-invito-nome').textContent = c.nome;
+  const scad = new Date(c.scadenza).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('comp-invito-desc').innerHTML =
+    `<strong>${c.categoria}</strong> · ${c.n_domande} domande · ${c.durata_minuti} minuti<br>Scade: ${scad}`;
+  showScreen('comp-invito');
+}
+
+function rifiutaCompetizione() { showApp(); }
+
+async function accettaCompetizione() {
+  if (!compAttiva) return;
+  await avviaCompetizione(compAttiva.id);
+}
+
+async function avviaCompetizione(id) {
+  // Carica competizione
+  const comps = await sbGet('/rest/v1/competizioni?id=eq.'+id, authToken);
+  compAttiva = comps?.[0]; if (!compAttiva) return;
+
+  // Crea o recupera il record partecipazione
+  const esistente = await sbGet(
+    `/rest/v1/competizioni_risposte?competizione_id=eq.${id}&user_id=eq.${currentUser.id}`,
+    authToken
+  );
+  if (esistente && esistente.length && esistente[0].completata) {
+    alert('Hai già completato questa competizione!'); return;
+  }
+  if (!esistente || !esistente.length) {
+    const r = await sbPost('/rest/v1/competizioni_risposte', {
+      competizione_id: id, user_id: currentUser.id,
+      risposte_ok:0, risposte_tot:0,
+      completata: false, started_at: new Date().toISOString()
+    }, authToken);
+    compRisposta = r?.[0];
+  } else {
+    compRisposta = esistente[0];
+  }
+
+  // Carica domande
+  let pool;
+  try {
+    const raw = compAttiva.domande_ids;
+    pool = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (typeof pool === 'string') pool = JSON.parse(pool); // double-encoded
+  } catch(e) { pool = []; }
+  const tipo = compAttiva.tipo_categoria;
+  compQueue = [];
+  console.log('Comp pool:', pool?.length, 'tipo:', tipo, 'sample:', pool?.[0]);
+
+  if (!pool || !pool.length) {
+    alert('Errore: nessuna domanda trovata nella competizione.');
+    showScreen('competizioni'); return;
+  }
+
+  if (tipo === 'misto' || (Array.isArray(pool) && pool.length && typeof pool[0] === 'object')) {
+    // Nuovo formato: array di oggetti {id, tipo, cat, paese?, entita?}
+    const teoricheIds = pool.filter(p=>p.tipo==='teorica').map(p=>p.id).filter(Boolean);
+    let domMap={}, opzMap={};
+    if (teoricheIds.length) {
+      const dom = await sbGet(`/rest/v1/domande?id=in.(${teoricheIds.join(',')})&select=*`, authToken);
+      const opz = await sbGet(`/rest/v1/opzioni?domanda_id=in.(${teoricheIds.join(',')})&order=ordine`, authToken);
+      for (const d of (dom||[])) domMap[d.id]=d;
+      for (const o of (opz||[])) { if(!opzMap[o.domanda_id]) opzMap[o.domanda_id]=[]; opzMap[o.domanda_id].push(o); }
+    }
+    for (const item of pool) {
+      if (item.tipo==='teorica') {
+        const d = domMap[item.id];
+        if (d) compQueue.push({...d, _src:'teorica', ops:(opzMap[d.id]||[]).map(o=>({t:o.testo,ok:o.corretta}))});
+      } else {
+        const tipoGeo = item.tipo && item.tipo.includes('vitigni') ? 'vitigno' : 'area';
+        const paese = item.paese || (item.tipo && item.tipo.includes('italia') ? 'italia' : 'francia');
+        compQueue.push({_src:'geo', _tipo:tipoGeo, _paese:paese, _entita:item.entita||item.id});
+      }
+    }
+  } else if (tipo === 'teorica') {
+    const dom = await sbGet(`/rest/v1/domande?id=in.(${pool.join(',')})&select=*`, authToken);
+    const opz = await sbGet(`/rest/v1/opzioni?domanda_id=in.(${pool.join(',')})&order=ordine`, authToken);
+    const opzM={};
+    for (const o of (opz||[])) { if(!opzM[o.domanda_id]) opzM[o.domanda_id]=[]; opzM[o.domanda_id].push(o); }
+    for (const id2 of pool) {
+      const d=(dom||[]).find(x=>x.id==id2);
+      if(d) compQueue.push({...d, _src:'teorica', ops:(opzM[d.id]||[]).map(o=>({t:o.testo,ok:o.corretta}))});
+    }
+  } else {
+    const paese=tipo.includes('italia')?'italia':'francia';
+    const isTipoVit=tipo.includes('vitigni');
+    for(const entita of pool) compQueue.push({_src:'geo',_tipo:isTipoVit?'vitigno':'area',_paese:paese,_entita:entita});
+  }
+  console.log('compQueue length:', compQueue.length);
+
+  // Avvia
+  compIndex=0; compOk=0; compTot=0;
+  compStartedAt = Date.now();
+  compSecondiRimasti = compAttiva.durata_minuti * 60;
+  showScreen('comp-quiz');
+  document.getElementById('comp-quiz-nome').textContent = compAttiva.nome;
+  aggiornaTimerComp();
+  compTimer = setInterval(()=>{
+    compSecondiRimasti--;
+    aggiornaTimerComp();
+    if (compSecondiRimasti<=0) terminaCompetizione();
+  }, 1000);
+  renderCompDomanda();
+}
+
+function aggiornaTimerComp() {
+  const min = Math.floor(compSecondiRimasti/60);
+  const sec = compSecondiRimasti%60;
+  const el = document.getElementById('comp-timer-display');
+  if (!el) return;
+  el.textContent = min+':'+String(sec).padStart(2,'0');
+  el.className='timer-display'+(compSecondiRimasti<=60?' danger':compSecondiRimasti<=180?' warning':'');
+}
+
+function renderCompDomanda() {
+  if (compIndex >= compQueue.length) { terminaCompetizione(); return; }
+  const q = compQueue[compIndex];
+  const panel = document.getElementById('comp-panel');
+  const pct = Math.round(100*compIndex/compQueue.length);
+  document.getElementById('comp-progress-bar').style.width=pct+'%';
+  document.getElementById('comp-counter').textContent=(compIndex+1)+' / '+compQueue.length;
+  document.getElementById('comp-score').textContent=compOk+' / '+compTot;
+
+  if (q._src==='teorica') {
+    if (q.tipo==='vf') {
+      panel.innerHTML=`<div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q.categoria||''} — Vero o Falso</div>
+        <div style="font-size:15px;line-height:1.6;margin-bottom:1.25rem">${q.domanda}</div>
+        <div class="bacca-group">
+          <button class="bacca-btn" id="cvf-V" onclick="rispostaCompVF(true)">✓ Vero</button>
+          <button class="bacca-btn" id="cvf-F" onclick="rispostaCompVF(false)">✗ Falso</button>
+        </div>
+        <div id="comp-feedback" style="margin-top:.75rem"></div>`;
+    } else {
+      const opts = shuffle([...q.ops]);
+      q._opts = opts;
+      panel.innerHTML=`<div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q.categoria||''} — Scelta multipla</div>
+        <div style="font-size:15px;line-height:1.6;margin-bottom:1.25rem">${q.domanda}</div>
+        <div class="options-grid">${opts.map((o,i)=>`<div class="option-item" id="csm-${i}" onclick="togCompSM(${i})"><div class="option-check" id="csm-chk-${i}"></div><span>${o.t}</span></div>`).join('')}</div>
+        <div id="comp-feedback" style="margin-top:.75rem"></div>
+        <div style="margin-top:.75rem"><button class="btn primary" onclick="rispostaCompSM()">Verifica</button></div>`;
+      q._selSM = new Set();
+    }
+  } else {
+    renderCompGeo(panel, q);
+  }
+}
+
+let _compSMSel = new Set();
+function togCompSM(i) {
+  const el=document.getElementById('csm-'+i), chk=document.getElementById('csm-chk-'+i);
+  if(_compSMSel.has(i)){_compSMSel.delete(i);el.classList.remove('selected');chk.textContent='';}
+  else{_compSMSel.add(i);el.classList.add('selected');chk.textContent='✓';}
+}
+
+function renderCompGeo(panel, q) {
+  const db = q._paese==='italia' ? DB_ITALIA : DB_FRANCIA;
+  if (!db) { compIndex++; renderCompDomanda(); return; }
+  if (q._tipo==='vitigno') {
+    const vdata = db.vitigni?.[q._entita];
+    if (!vdata) { compIndex++; renderCompDomanda(); return; }
+    panel.innerHTML=`<div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q._paese==='italia'?'🇮🇹':'🇫🇷'} Vitigno</div>
+      <div style="font-size:15px;line-height:1.6;margin-bottom:1.25rem">Qual è il colore della bacca di <strong>${q._entita}</strong>?</div>
+      <div class="bacca-group">
+        <button class="bacca-btn" onclick="rispostaCompGeo('B','${vdata.bacca}','${q._entita}','${q._paese}','vitigno')">🍇 Bacca Bianca</button>
+        <button class="bacca-btn" onclick="rispostaCompGeo('N','${vdata.bacca}','${q._entita}','${q._paese}','vitigno')">🍇 Bacca Nera</button>
+      </div>
+      <div id="comp-feedback" style="margin-top:.75rem"></div>`;
+  } else {
+    const regioneData = db.aree?.[q._entita];
+    const sottozone = q._paese==='italia' ? (regioneData?.class||[]) : Object.keys(regioneData?.areali||{});
+    if (!sottozone.length) { compIndex++; renderCompDomanda(); return; }
+    const stz = sottozone[Math.floor(Math.random()*sottozone.length)];
+    const corr = q._entita;
+    const altre = shuffle(Object.keys(db.aree).filter(r=>r!==corr)).slice(0,3);
+    const opts = shuffle([corr,...altre]);
+    panel.innerHTML=`<div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q._paese==='italia'?'🇮🇹':'🇫🇷'} ${q._paese==='italia'?'DOCG':'Areale'}</div>
+      <div style="font-size:15px;line-height:1.6;margin-bottom:1.25rem">In quale regione si trova <strong>${stz}</strong>?</div>
+      <div class="options-grid">${opts.map(o=>`<div class="option-item" onclick="rispostaCompArea(this,'${o.replace(/'/g,"\\'")}','${corr.replace(/'/g,"\\'")}','${stz.replace(/'/g,"\\'")}','${q._paese}')"><span>${o}</span></div>`).join('')}</div>
+      <div id="comp-feedback" style="margin-top:.75rem"></div>`;
+  }
+}
+
+function registraRispostaComp(ok, mostraSuccessiva) {
+  compTot++;
+  if (ok) compOk++;
+  const fb = document.getElementById('comp-feedback');
+  if (fb) { fb.className='feedback '+(ok?'correct':'wrong'); fb.textContent=ok?'✓ Corretto!':'✗ Sbagliato.'; }
+  document.getElementById('comp-score').textContent=compOk+' / '+compTot;
+  if (ok || !mostraSuccessiva) {
+    setTimeout(()=>{ compIndex++; _compSMSel=new Set(); renderCompDomanda(); }, ok?1200:0);
+  } else {
+    // Risposta errata: mostra pulsante successiva
+    const btn=document.createElement('button');
+    btn.className='btn primary'; btn.style.marginTop='1rem'; btn.textContent='Successiva →';
+    btn.onclick=()=>{ compIndex++; _compSMSel=new Set(); renderCompDomanda(); };
+    if (fb) fb.parentNode.appendChild(btn);
+  }
+}
+
+function rispostaCompVF(scelta) {
+  const q=compQueue[compIndex];
+  const ok=scelta===q.risposta_corretta;
+  document.getElementById('cvf-V').disabled=true;
+  document.getElementById('cvf-F').disabled=true;
+  document.getElementById(scelta?'cvf-V':'cvf-F').classList.add(ok?'correct':'wrong');
+  if(!ok) document.getElementById(q.risposta_corretta?'cvf-V':'cvf-F').classList.add('correct');
+  registraRispostaComp(ok, true);
+}
+
+function rispostaCompSM() {
+  const q=compQueue[compIndex];
+  const opts=q._opts||q.ops;
+  let ok=true;
+  opts.forEach((o,i)=>{
+    const sel=_compSMSel.has(i);
+    const el=document.getElementById('csm-'+i), chk=document.getElementById('csm-chk-'+i);
+    if(o.ok&&sel){el.classList.remove('selected');el.classList.add('correct');chk.textContent='✓';}
+    else if(o.ok&&!sel){el.classList.add('missed');chk.textContent='✓';ok=false;}
+    else if(!o.ok&&sel){el.classList.remove('selected');el.classList.add('wrong');chk.textContent='✗';ok=false;}
+  });
+  registraRispostaComp(ok, true);
+}
+
+function rispostaCompGeo(scelta, corretta, entita, paese, tipo) {
+  const ok=scelta===corretta;
+  const btnB=document.querySelector('#comp-panel .bacca-btn:first-child');
+  const btnN=document.querySelector('#comp-panel .bacca-btn:last-child');
+  if(btnB) btnB.disabled=true; if(btnN) btnN.disabled=true;
+  if(corretta==='B'){if(btnB)btnB.classList.add('correct');if(!ok&&btnN)btnN.classList.add('wrong');}
+  else{if(btnN)btnN.classList.add('correct');if(!ok&&btnB)btnB.classList.add('wrong');}
+  registraRispostaComp(ok, true);
+}
+
+function rispostaCompArea(el, scelta, corretta, stz, paese) {
+  const ok=scelta===corretta;
+  document.querySelectorAll('#comp-panel .option-item').forEach(e=>{
+    e.style.pointerEvents='none';
+    const txt=e.querySelector('span')?.textContent?.trim()||'';
+    if(txt===corretta) e.classList.add('correct');
+    else if(txt===scelta&&!ok) e.classList.add('wrong');
+  });
+  registraRispostaComp(ok, true);
+}
+
+async function terminaCompetizione() {
+  if (compTimer) { clearInterval(compTimer); compTimer=null; }
+  const tempoUsato = Math.round((Date.now()-compStartedAt)/1000);
+  // Salva risultato
+  if (compRisposta) {
+    await sbPatch(
+      `/rest/v1/competizioni_risposte?competizione_id=eq.${compAttiva.id}&user_id=eq.${currentUser.id}`,
+      {risposte_ok:compOk, risposte_tot:compTot, tempo_secondi:tempoUsato,
+       completata:true, completed_at:new Date().toISOString()}, authToken
+    );
+  }
+  mostraClassifica(compAttiva.id, compAttiva.nome);
+}
+
+async function mostraClassifica(id, nome) {
+  showScreen('classifica');
+  const el = document.getElementById('classifica-content');
+  el.innerHTML='<div class="empty-state">⏳ Caricamento classifica…</div>';
+
+  const [risposte, profiles] = await Promise.all([
+    sbGet(`/rest/v1/competizioni_risposte?competizione_id=eq.${id}&order=risposte_ok.desc,tempo_secondi.asc`, authToken),
+    sbGet('/rest/v1/profiles?select=id,username', authToken)
+  ]);
+
+  const profMap = Object.fromEntries((profiles||[]).map(p=>[p.id,p.username]));
+
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
+    <h2 style="font-size:18px;font-weight:500;">🏆 ${nome}</h2>
+    <button class="btn-sm" onclick="showCompetizioni()">← Competizioni</button>
+  </div>
+  <div style="background:var(--bg-primary);border-radius:var(--radius-lg);border:0.5px solid var(--border-light);overflow:hidden;">
+  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+  <thead><tr>
+    <th style="text-align:center;padding:10px 12px;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;border-bottom:0.5px solid var(--border-light)">#</th>
+    <th style="text-align:left;padding:10px 12px;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;border-bottom:0.5px solid var(--border-light)">Studente</th>
+    <th style="text-align:center;padding:10px 12px;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;border-bottom:0.5px solid var(--border-light)">Corrette</th>
+    <th style="text-align:center;padding:10px 12px;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;border-bottom:0.5px solid var(--border-light)">%</th>
+    <th style="text-align:center;padding:10px 12px;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;border-bottom:0.5px solid var(--border-light)">Tempo</th>
+    <th style="text-align:center;padding:10px 12px;font-size:10px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;border-bottom:0.5px solid var(--border-light)">Stato</th>
+  </tr></thead><tbody>`;
+
+  const medaglie = ['🥇','🥈','🥉'];
+  (risposte||[]).forEach((r,i)=>{
+    const username = profMap[r.user_id] || '?';
+    const pct = r.risposte_tot ? Math.round(100*r.risposte_ok/r.risposte_tot) : 0;
+    const col = pct>=70?'var(--green-text)':pct>=50?'var(--yellow-text)':'var(--red-text)';
+    const min = r.tempo_secondi ? Math.floor(r.tempo_secondi/60)+':'+(String(r.tempo_secondi%60).padStart(2,'0')) : '—';
+    const isMe = r.user_id===currentUser.id;
+    html+=`<tr style="border-bottom:0.5px solid var(--border-light);${isMe?'background:var(--blue-bg)':''}">
+      <td style="text-align:center;padding:10px 12px;font-size:16px">${medaglie[i]||i+1}</td>
+      <td style="padding:10px 12px"><strong>${username}</strong>${isMe?' (tu)':''}</td>
+      <td style="text-align:center;padding:10px 12px">${r.risposte_ok}/${r.risposte_tot}</td>
+      <td style="text-align:center;padding:10px 12px;font-weight:600;color:${col}">${pct}%</td>
+      <td style="text-align:center;padding:10px 12px;font-size:12px">${min}</td>
+      <td style="text-align:center;padding:10px 12px"><span class="badge ${r.completata?'approvato':'in_attesa'}">${r.completata?'Completa':'Parziale'}</span></td>
+    </tr>`;
+  });
+  if (!risposte?.length) html+='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-tertiary)">Nessun partecipante ancora.</td></tr>';
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+}
+
+// Controlla competizioni attive al login
+async function checkCompetizioni() {
+  const [comps, mie] = await Promise.all([
+    sbGet('/rest/v1/competizioni?stato=eq.attiva&select=*', authToken),
+    sbGet('/rest/v1/competizioni_risposte?user_id=eq.'+currentUser.id+'&select=competizione_id,completata', authToken)
+  ]);
+  const mieIds = new Set((mie||[]).map(r=>r.competizione_id));
+  const nonPartecipate = (comps||[]).filter(c=>
+    !mieIds.has(c.id) && new Date(c.scadenza) > new Date()
+  );
+  const badge = document.getElementById('badge-comp');
+  if (badge && nonPartecipate.length) {
+    badge.style.display='inline';
+    badge.textContent=nonPartecipate.length;
+  }
+  // Mostra invito automatico se c'è una competizione non vista
+  if (nonPartecipate.length) {
+    compAttiva = nonPartecipate[0];
+    setTimeout(()=>mostraInvitoCompetizione(compAttiva.id), 1500);
+  }
+}
+const _origFeedback = feedback;
+feedback = function(ok) {
+  _origFeedback(ok);
+  // Traccia errori per ripasso
+  if (sezione === 'produzione' && currentOptions) {
+    if (!ok) {
+      const domandaText = document.querySelector('#main-panel .question-label:nth-child(2)')?.textContent || '';
+      prodSessioneErrori.push({
+        id: currentOptions.domanda_id,
+        tipo: currentOptions.tipo,
+        d: domandaText,
+        ok: currentOptions.ok,
+        sp: currentOptions.sp,
+        ops: currentOptions.opts,
+        categoria: prodCategoria
+      });
+    }
+    if (currentOptions.domanda_id) {
+      saveRisposta(currentOptions.domanda_id, ok);
+    } else {
+      saveRispostaGeo('domanda', 'teoria', prodCategoria, ok);
+    }
+  } else if (selected) {
+    // Traccia errori geo nella sessione
+    if (!ok) {
+      const key = mode+'|'+country+'|'+selected;
+      const exists = sessioneErroriGeo.find(g => g.tipo===mode && g.paese===country && g.entita===selected);
+      if (!exists) sessioneErroriGeo.push({tipo: mode, paese: country, entita: selected});
+    }
+    saveRispostaGeo(mode, country, selected, ok);
+  }
+};
+
+// ── INIT ────────────────────────────────────────
+checkSession();
+</script>
+</body>
+</html>
