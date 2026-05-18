@@ -891,6 +891,13 @@ function showScreen(name) {
 
 function showApp() {
   showScreen('app');
+  // Carica i livelli attivi all'avvio (se non gia' fatto) e applica subito
+  // la visibilita' delle sezioni geografiche, prima che l'utente interagisca.
+  if (!livelliCaricati) {
+    caricaLivelliAttivi();
+  } else {
+    applicaVisibilitaLivelli();
+  }
   const btnEsame = document.getElementById('btn-esame');
   const btnComp  = document.getElementById('btn-competizione');
   if (btnEsame) btnEsame.classList.remove('active');
@@ -2893,19 +2900,8 @@ async function loadDomandeSupabase() {
       opzMap[op.domanda_id].push(op);
     }
 
-    // Carica i livelli attivi dalla configurazione (default 1,2 se assente)
-    try {
-      const rCfg = await fetch(
-        SUPABASE_URL + "/rest/v1/config?chiave=eq.livelli_attivi&select=valore",
-        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
-      );
-      const cfg = await rCfg.json();
-      if (Array.isArray(cfg) && cfg.length && cfg[0].valore) {
-        LIVELLI_ATTIVI = cfg[0].valore.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
-      }
-    } catch(e) { console.warn('Config livelli non disponibile, uso default', LIVELLI_ATTIVI); }
-    if (!LIVELLI_ATTIVI.length) LIVELLI_ATTIVI = [1, 2];
-    applicaVisibilitaLivelli();
+    // Carica i livelli attivi dalla configurazione (funzione dedicata)
+    await caricaLivelliAttivi();
 
     // Costruisce DB_PRODUZIONE filtrando per livello attivo
     DB_PRODUZIONE = {};
@@ -3116,6 +3112,25 @@ function ricominciaMazzo() {
   renderProduzioneQuiz();
 }
 
+
+// Legge i livelli attivi dalla tabella config (default 1,2 se assente/errore).
+// Funzione autonoma: richiamabile all'avvio app, non solo al caricamento domande.
+let livelliCaricati = false;
+async function caricaLivelliAttivi() {
+  try {
+    const rCfg = await fetch(
+      SUPABASE_URL + "/rest/v1/config?chiave=eq.livelli_attivi&select=valore",
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    const cfg = await rCfg.json();
+    if (Array.isArray(cfg) && cfg.length && cfg[0].valore) {
+      LIVELLI_ATTIVI = cfg[0].valore.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+    }
+  } catch(e) { console.warn('Config livelli non disponibile, uso default', LIVELLI_ATTIVI); }
+  if (!LIVELLI_ATTIVI.length) LIVELLI_ATTIVI = [1, 2];
+  livelliCaricati = true;
+  applicaVisibilitaLivelli();
+}
 
 // Opzione A: mostra/nasconde i bottoni delle sezioni geografiche
 // in base alla presenza del Livello 2 tra quelli attivi.
