@@ -449,7 +449,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-app" style="display:none; width:100%;">
   <!-- Top bar -->
   <div class="topbar" style="max-width:900px; margin:0 auto .75rem;">
-    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.51</span></span>
+    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.52</span></span>
     <div class="topbar-user">
       <span id="topbar-username" style="font-size:13px;"></span>
       <span id="topbar-badge" class="topbar-badge"></span>
@@ -496,7 +496,7 @@ tr:last-child td { border-bottom:none; }
     </div>
   </div>
   <div style="max-width:900px; margin:.5rem auto 0; text-align:right;">
-    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.51</span>
+    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.52</span>
   </div>
 </div>
 
@@ -683,6 +683,7 @@ tr:last-child td { border-bottom:none; }
           <button class="admin-tab" onclick="adminTab('statistiche')">Statistiche</button>
           <button class="admin-tab" onclick="adminTab('errori')">Errori frequenti</button>
           <button class="admin-tab" onclick="adminTab('competizioni')">Competizioni</button>
+          <button class="admin-tab" onclick="adminTab('livelli')">Livelli</button>
         </div>
       </div>
       <div class="admin-body" id="admin-body">
@@ -693,7 +694,7 @@ tr:last-child td { border-bottom:none; }
 </div>
 
 <script>
-const APP_VERSION = '2.51';
+const APP_VERSION = '2.52';
 const SUPABASE_URL = 'https://ypqgmwcrnhxfdfkfjivc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcWdtd2Nybmh4ZmRma2ZqaXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3MTcsImV4cCI6MjA5NDM5OTcxN30.gOVk3CjeT20MeZORLUFvL4Jd1FXJJSSRczUmUUANxXY';
 const CODICE_CLASSE = 'SOMMELIER2026';
@@ -1865,7 +1866,7 @@ let currentAdminTab = 'utenti';
 function adminTab(tab) {
   currentAdminTab = tab;
   document.querySelectorAll('.admin-tab').forEach((t,i) =>
-    t.classList.toggle('active', ['utenti','statistiche','errori','competizioni'][i]===tab));
+    t.classList.toggle('active', ['utenti','statistiche','errori','competizioni','livelli'][i]===tab));
   loadAdmin(tab);
 }
 
@@ -2128,12 +2129,74 @@ async function loadAdmin(tab) {
 
     el.innerHTML = html;
   }
+
+  if (tab === 'livelli') {
+    const cfg = await sbGet('/rest/v1/config?chiave=eq.livelli_attivi&select=valore', authToken);
+    let attivi = [1, 2];
+    if (Array.isArray(cfg) && cfg.length && cfg[0].valore) {
+      attivi = cfg[0].valore.split(',').map(s => parseInt(s.trim(),10)).filter(n=>!isNaN(n));
+    }
+    // conteggio domande per livello
+    const dom = await sbGet('/rest/v1/domande?select=livello', authToken);
+    const cnt = {1:0,2:0,3:0};
+    (dom||[]).forEach(d => { const l = d.livello==null?1:Number(d.livello); if(cnt[l]!=null) cnt[l]++; });
+
+    const liv = [
+      { n:1, nome:'Livello 1 — Tecnica ed enologia', desc:'Viticoltura, enologia, degustazione, servizio, legislazione, vitigni internazionali.' },
+      { n:2, nome:'Livello 2 — Territori del vino', desc:'Grandi vini del mondo e quiz geografico Italia/Francia (regioni, vitigni, denominazioni).' },
+      { n:3, nome:'Livello 3 — Abbinamento e beverage', desc:'Abbinamento cibo-vino e distillati/beverage avanzato.' }
+    ];
+
+    let html = `<div style="max-width:680px">
+      <p style="font-size:13px;color:var(--text-tertiary);margin-bottom:1rem">
+        Attiva o disattiva i livelli visibili agli studenti. Le domande dei livelli disattivati
+        restano nel database ma non vengono mostrate. Il Livello 2 governa anche il quiz geografico.
+      </p>`;
+    for (const L of liv) {
+      const on = attivi.includes(L.n);
+      html += `<div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:1rem">
+        <div>
+          <div style="font-weight:600;font-size:14px">${L.nome}</div>
+          <div style="font-size:12px;color:var(--text-tertiary);margin-top:3px">${L.desc}</div>
+          <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px">${cnt[L.n]||0} domande teoriche</div>
+        </div>
+        <button class="btn-sm" style="white-space:nowrap;color:${on?'var(--green-text)':'var(--text-tertiary)'};border-color:${on?'var(--green-border)':'var(--border)'}"
+          onclick="toggleLivello(${L.n})">${on?'✓ Attivo':'Disattivato'}</button>
+      </div>`;
+    }
+    html += `<p style="font-size:12px;color:var(--text-tertiary);margin-top:1rem">
+      Configurazione attuale: <strong>livelli ${attivi.sort().join(', ')}</strong> attivi.
+      Le modifiche hanno effetto al successivo caricamento dell'app da parte degli studenti.
+    </p></div>`;
+    el.innerHTML = html;
+  }
 }
 
 async function adminChiudiComp(id) {
   if (!confirm('Chiudi questa competizione? La classifica diventerà visibile a tutti.')) return;
   await sbPatch('/rest/v1/competizioni?id=eq.'+id, {stato:'chiusa'}, authToken);
   loadAdmin('competizioni');
+}
+
+async function toggleLivello(n) {
+  // Legge la config attuale, accende/spegne il livello n, risalva
+  const cfg = await sbGet('/rest/v1/config?chiave=eq.livelli_attivi&select=valore', authToken);
+  let attivi = [1, 2];
+  if (Array.isArray(cfg) && cfg.length && cfg[0].valore) {
+    attivi = cfg[0].valore.split(',').map(s => parseInt(s.trim(),10)).filter(x=>!isNaN(x));
+  }
+  if (attivi.includes(n)) {
+    if (attivi.length === 1) { alert('Deve restare attivo almeno un livello.'); return; }
+    attivi = attivi.filter(x => x !== n);
+  } else {
+    attivi.push(n);
+  }
+  attivi.sort();
+  const nuovo = attivi.join(',');
+  await sbPatch('/rest/v1/config?chiave=eq.livelli_attivi',
+                { valore: nuovo, aggiornato_il: new Date().toISOString() }, authToken);
+  LIVELLI_ATTIVI = attivi.slice();
+  loadAdmin('livelli');
 }
 
 async function mostraDettaglioUtente(userId, username) {
@@ -2803,6 +2866,7 @@ var _SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 let DB_PRODUZIONE = {};
 let supabaseLoaded = false;
 let supabaseLoading = false;
+let LIVELLI_ATTIVI = [1, 2];  // livelli visibili agli studenti (sovrascritto da config)
 
 async function loadDomandeSupabase() {
   if (supabaseLoaded || supabaseLoading) return;
@@ -2810,7 +2874,7 @@ async function loadDomandeSupabase() {
   try {
     // Carica tutte le domande
     const rDom = await fetch(
-      SUPABASE_URL + '/rest/v1/domande?select=*&order=categoria,id',
+      SUPABASE_URL + '/rest/v1/domande?select=*,livello&order=categoria,id',
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
     );
     const domande = await rDom.json();
@@ -2829,9 +2893,26 @@ async function loadDomandeSupabase() {
       opzMap[op.domanda_id].push(op);
     }
 
-    // Costruisce DB_PRODUZIONE
+    // Carica i livelli attivi dalla configurazione (default 1,2 se assente)
+    try {
+      const rCfg = await fetch(
+        SUPABASE_URL + "/rest/v1/config?chiave=eq.livelli_attivi&select=valore",
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+      );
+      const cfg = await rCfg.json();
+      if (Array.isArray(cfg) && cfg.length && cfg[0].valore) {
+        LIVELLI_ATTIVI = cfg[0].valore.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+      }
+    } catch(e) { console.warn('Config livelli non disponibile, uso default', LIVELLI_ATTIVI); }
+    if (!LIVELLI_ATTIVI.length) LIVELLI_ATTIVI = [1, 2];
+    applicaVisibilitaLivelli();
+
+    // Costruisce DB_PRODUZIONE filtrando per livello attivo
     DB_PRODUZIONE = {};
+    let escluse = 0;
     for (const d of domande) {
+      const liv = (d.livello == null) ? 1 : Number(d.livello);
+      if (!LIVELLI_ATTIVI.includes(liv)) { escluse++; continue; }
       if (!DB_PRODUZIONE[d.categoria]) {
         DB_PRODUZIONE[d.categoria] = { tipo: 'misto', domande: [] };
       }
@@ -2842,7 +2923,8 @@ async function loadDomandeSupabase() {
       DB_PRODUZIONE[d.categoria].domande.push(item);
     }
     supabaseLoaded = true;
-    console.log('Supabase: caricate', domande.length, 'domande in', Object.keys(DB_PRODUZIONE).length, 'categorie');
+    console.log('Supabase: caricate', domande.length, 'domande, livelli attivi', LIVELLI_ATTIVI.join(','),
+                '-', escluse, 'escluse,', Object.keys(DB_PRODUZIONE).length, 'categorie visibili');
   } catch(e) {
     console.error('Errore caricamento Supabase:', e);
   }
@@ -3035,7 +3117,26 @@ function ricominciaMazzo() {
 }
 
 
+// Opzione A: mostra/nasconde i bottoni delle sezioni geografiche
+// in base alla presenza del Livello 2 tra quelli attivi.
+function applicaVisibilitaLivelli() {
+  const mostraGeo = LIVELLI_ATTIVI.includes(2);
+  const bIt = document.getElementById('btn-italia');
+  const bFr = document.getElementById('btn-francia');
+  if (bIt) bIt.style.display = mostraGeo ? '' : 'none';
+  if (bFr) bFr.style.display = mostraGeo ? '' : 'none';
+  // Se la sezione corrente e' geografica ma il L2 non e' attivo, vai su Domande
+  if (!mostraGeo && (sezione==='italia' || sezione==='francia')) {
+    setSection('produzione');
+  }
+}
+
 function setSection(s) {
+  // Opzione A: la sezione geografica (Italia/Francia) e' Livello 2 in blocco.
+  // Se il Livello 2 non e' attivo, queste sezioni non sono accessibili.
+  if ((s==='italia' || s==='francia') && !LIVELLI_ATTIVI.includes(2)) {
+    s = 'produzione';
+  }
   sezione = s;
   ['italia','francia','produzione'].forEach(x => document.getElementById('btn-'+x).classList.toggle('active', x===s));
   if (s==='produzione') {
