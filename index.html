@@ -449,7 +449,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-app" style="display:none; width:100%;">
   <!-- Top bar -->
   <div class="topbar" style="max-width:900px; margin:0 auto .75rem;">
-    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.66</span></span>
+    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.67</span></span>
     <div class="topbar-user">
       <span id="topbar-username" style="font-size:13px;"></span>
       <span id="topbar-badge" class="topbar-badge"></span>
@@ -496,7 +496,7 @@ tr:last-child td { border-bottom:none; }
     </div>
   </div>
   <div style="max-width:900px; margin:.5rem auto 0; text-align:right;">
-    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.66</span>
+    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.67</span>
   </div>
 </div>
 
@@ -694,7 +694,7 @@ tr:last-child td { border-bottom:none; }
 </div>
 
 <script>
-const APP_VERSION = '2.66';
+const APP_VERSION = '2.67';
 const SUPABASE_URL = 'https://ypqgmwcrnhxfdfkfjivc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcWdtd2Nybmh4ZmRma2ZqaXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3MTcsImV4cCI6MjA5NDM5OTcxN30.gOVk3CjeT20MeZORLUFvL4Jd1FXJJSSRczUmUUANxXY';
 const CODICE_CLASSE = 'SOMMELIER2026';
@@ -978,6 +978,31 @@ async function mostraGlossario(termine) {
 
 // ── Scheda vitigno ──────────────────────────────
 async function mostraSchedaVitigno(nomeVitigno, paese) {
+  const flag = paese === 'francia' ? '🇫🇷' : '🇮🇹';
+  const classLabel = paese === 'francia' ? 'AOC associate' : 'DOCG associate';
+
+  // Per la Francia usa i dati dal DB geo (già in memoria, corretti per paese)
+  if (paese === 'francia' && DB_FRANCIA && DB_FRANCIA.vitigni) {
+    const v = DB_FRANCIA.vitigni[nomeVitigno] || DB_FRANCIA.vitigni[nomeVitigno.toLowerCase()];
+    if (v) {
+      const baccaLabel = {B:'Bacca Bianca', N:'Bacca Nera', R:'Bacca Rosata'}[v.bacca] || v.bacca || '—';
+      let html = `<div class="modal-section"><h4>Bacca</h4><span class="bacca-badge ${v.bacca||''}">${baccaLabel}</span></div>`;
+      if (v.regioni?.length) {
+        html += `<div class="modal-section"><h4>Regioni principali</h4>
+          <div class="modal-tags">${v.regioni.map(r=>`<span class="modal-tag regione">${flag} ${r}</span>`).join('')}</div>
+        </div>`;
+      }
+      if (v.docg?.length) {
+        html += `<div class="modal-section"><h4>${classLabel}</h4>
+          <div class="modal-tags">${v.docg.map(d=>`<span class="modal-tag docg">${d}</span>`).join('')}</div>
+        </div>`;
+      }
+      apriModal('🍇 ' + nomeVitigno, html);
+      return;
+    }
+  }
+
+  // Per l'Italia (o fallback) usa la tabella schede_vitigni
   const schede = await loadSchedeVitigni();
   const s = schede[nomeVitigno.toLowerCase()];
   if (!s) { apriModal(nomeVitigno, '<p style="color:var(--text-tertiary)">Scheda non ancora disponibile.</p>'); return; }
@@ -995,12 +1020,12 @@ async function mostraSchedaVitigno(nomeVitigno, paese) {
 
   if (s.regioni_principali?.length) {
     html += `<div class="modal-section"><h4>Regioni principali</h4>
-      <div class="modal-tags">${s.regioni_principali.map(r=>`<span class="modal-tag regione">${paese==='francia'?'🇫🇷':'🇮🇹'} ${r}</span>`).join('')}</div>
+      <div class="modal-tags">${s.regioni_principali.map(r=>`<span class="modal-tag regione">${flag} ${r}</span>`).join('')}</div>
     </div>`;
   }
 
   if (s.docg_associate?.length) {
-    html += `<div class="modal-section"><h4>DOCG associate</h4>
+    html += `<div class="modal-section"><h4>${classLabel}</h4>
       <div class="modal-tags">${s.docg_associate.map(d=>`<span class="modal-tag docg">${d}</span>`).join('')}</div>
     </div>`;
   }
