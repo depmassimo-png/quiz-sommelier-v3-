@@ -449,7 +449,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-app" style="display:none; width:100%;">
   <!-- Top bar -->
   <div class="topbar" style="max-width:900px; margin:0 auto .75rem;">
-    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.65</span></span>
+    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.66</span></span>
     <div class="topbar-user">
       <span id="topbar-username" style="font-size:13px;"></span>
       <span id="topbar-badge" class="topbar-badge"></span>
@@ -496,7 +496,7 @@ tr:last-child td { border-bottom:none; }
     </div>
   </div>
   <div style="max-width:900px; margin:.5rem auto 0; text-align:right;">
-    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.65</span>
+    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.66</span>
   </div>
 </div>
 
@@ -694,7 +694,7 @@ tr:last-child td { border-bottom:none; }
 </div>
 
 <script>
-const APP_VERSION = '2.65';
+const APP_VERSION = '2.66';
 const SUPABASE_URL = 'https://ypqgmwcrnhxfdfkfjivc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcWdtd2Nybmh4ZmRma2ZqaXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3MTcsImV4cCI6MjA5NDM5OTcxN30.gOVk3CjeT20MeZORLUFvL4Jd1FXJJSSRczUmUUANxXY';
 const CODICE_CLASSE = 'SOMMELIER2026';
@@ -977,7 +977,7 @@ async function mostraGlossario(termine) {
 }
 
 // ── Scheda vitigno ──────────────────────────────
-async function mostraSchedaVitigno(nomeVitigno) {
+async function mostraSchedaVitigno(nomeVitigno, paese) {
   const schede = await loadSchedeVitigni();
   const s = schede[nomeVitigno.toLowerCase()];
   if (!s) { apriModal(nomeVitigno, '<p style="color:var(--text-tertiary)">Scheda non ancora disponibile.</p>'); return; }
@@ -995,7 +995,7 @@ async function mostraSchedaVitigno(nomeVitigno) {
 
   if (s.regioni_principali?.length) {
     html += `<div class="modal-section"><h4>Regioni principali</h4>
-      <div class="modal-tags">${s.regioni_principali.map(r=>`<span class="modal-tag regione">🇮🇹 ${r}</span>`).join('')}</div>
+      <div class="modal-tags">${s.regioni_principali.map(r=>`<span class="modal-tag regione">${paese==='francia'?'🇫🇷':'🇮🇹'} ${r}</span>`).join('')}</div>
     </div>`;
   }
 
@@ -1079,7 +1079,7 @@ function aggiungiBtnScheda(tipo, nome) {
   btn.id = 'btn-scheda-inline';
   btn.className = 'btn-scheda';
   btn.innerHTML = tipo === 'vitigno' ? '📖 Scheda vitigno' : '🗺 Scheda regione';
-  btn.onclick = () => tipo === 'vitigno' ? mostraSchedaVitigno(nome) : mostraSchedaRegione(nome);
+  btn.onclick = () => tipo === 'vitigno' ? mostraSchedaVitigno(nome, country) : mostraSchedaRegione(nome);
   fb.parentNode.insertBefore(btn, fb.nextSibling);
 }
 let esameDurata = 30;      // minuti
