@@ -449,7 +449,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-app" style="display:none; width:100%;">
   <!-- Top bar -->
   <div class="topbar" style="max-width:900px; margin:0 auto .75rem;">
-    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.68</span></span>
+    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.69</span></span>
     <div class="topbar-user">
       <span id="topbar-username" style="font-size:13px;"></span>
       <span id="topbar-badge" class="topbar-badge"></span>
@@ -496,7 +496,7 @@ tr:last-child td { border-bottom:none; }
     </div>
   </div>
   <div style="max-width:900px; margin:.5rem auto 0; text-align:right;">
-    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.68</span>
+    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.69</span>
   </div>
 </div>
 
@@ -694,7 +694,7 @@ tr:last-child td { border-bottom:none; }
 </div>
 
 <script>
-const APP_VERSION = '2.68';
+const APP_VERSION = '2.69';
 const SUPABASE_URL = 'https://ypqgmwcrnhxfdfkfjivc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcWdtd2Nybmh4ZmRma2ZqaXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3MTcsImV4cCI6MjA5NDM5OTcxN30.gOVk3CjeT20MeZORLUFvL4Jd1FXJJSSRczUmUUANxXY';
 const CODICE_CLASSE = 'SOMMELIER2026';
@@ -1032,6 +1032,18 @@ async function mostraSchedaVitigno(nomeVitigno, paese) {
 
   if (s.note) html += `<div class="modal-section"><h4>Note</h4><p>${s.note}</p></div>`;
 
+  if (s.classificazione) {
+    const cl = s.classificazione;
+    html += `<div class="modal-section"><h4>📋 ${cl.titolo || 'Classificazione'}</h4>`;
+    for (const v of (cl.voci || [])) {
+      html += `<div class="areale-card">
+        <h5><span style="font-family:monospace;font-size:11px;background:var(--blue-bg);color:var(--blue-text);padding:2px 6px;border-radius:4px;margin-right:6px">${v.codice}</span>${v.nome}</h5>
+        <p style="font-size:13px;line-height:1.6">${v.descrizione}</p>
+      </div>`;
+    }
+    html += '</div>';
+  }
+
   apriModal('🍇 ' + nomeVitigno, html);
 }
 
@@ -1060,6 +1072,20 @@ async function mostraSchedaRegione(nomeRegione, paese) {
           html += `<div class="areale-card"><h5>📍 ${nome}</h5>`;
           if (adata.vitigni?.length) html += `<p>${adata.vitigni.join(', ')}</p>`;
           html += '</div>';
+        }
+        html += '</div>';
+      }
+      // Aggiunge classificazioni da schede_regioni se disponibili
+      const schede = await loadSchedeRegioni();
+      const sched = schede[nomeRegione.toLowerCase()];
+      if (sched?.classificazione) {
+        const cl = sched.classificazione;
+        html += `<div class="modal-section"><h4>📋 ${cl.titolo || 'Classificazione'}</h4>`;
+        for (const v of (cl.voci || [])) {
+          html += `<div class="areale-card">
+            <h5><span style="font-family:monospace;font-size:11px;background:var(--blue-bg);color:var(--blue-text);padding:2px 6px;border-radius:4px;margin-right:6px">${v.codice}</span>${v.nome}</h5>
+            <p style="font-size:13px;line-height:1.6">${v.descrizione}</p>
+          </div>`;
         }
         html += '</div>';
       }
@@ -1107,6 +1133,18 @@ async function mostraSchedaRegione(nomeRegione, paese) {
   }
 
   if (s.note) html += `<div class="modal-section"><h4>Note</h4><p>${s.note}</p></div>`;
+
+  if (s.classificazione) {
+    const cl = s.classificazione;
+    html += `<div class="modal-section"><h4>📋 ${cl.titolo || 'Classificazione'}</h4>`;
+    for (const v of (cl.voci || [])) {
+      html += `<div class="areale-card">
+        <h5><span style="font-family:monospace;font-size:11px;background:var(--blue-bg);color:var(--blue-text);padding:2px 6px;border-radius:4px;margin-right:6px">${v.codice}</span>${v.nome}</h5>
+        <p style="font-size:13px;line-height:1.6">${v.descrizione}</p>
+      </div>`;
+    }
+    html += '</div>';
+  }
 
   apriModal('🗺 ' + nomeRegione, html);
 }
