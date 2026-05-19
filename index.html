@@ -449,7 +449,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-app" style="display:none; width:100%;">
   <!-- Top bar -->
   <div class="topbar" style="max-width:900px; margin:0 auto .75rem;">
-    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.58</span></span>
+    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.63</span></span>
     <div class="topbar-user">
       <span id="topbar-username" style="font-size:13px;"></span>
       <span id="topbar-badge" class="topbar-badge"></span>
@@ -496,7 +496,7 @@ tr:last-child td { border-bottom:none; }
     </div>
   </div>
   <div style="max-width:900px; margin:.5rem auto 0; text-align:right;">
-    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.58</span>
+    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.63</span>
   </div>
 </div>
 
@@ -694,7 +694,7 @@ tr:last-child td { border-bottom:none; }
 </div>
 
 <script>
-const APP_VERSION = '2.58';
+const APP_VERSION = '2.63';
 const SUPABASE_URL = 'https://ypqgmwcrnhxfdfkfjivc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcWdtd2Nybmh4ZmRma2ZqaXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3MTcsImV4cCI6MjA5NDM5OTcxN30.gOVk3CjeT20MeZORLUFvL4Jd1FXJJSSRczUmUUANxXY';
 const CODICE_CLASSE = 'SOMMELIER2026';
@@ -940,8 +940,10 @@ async function loadSchedeVitigni() {
 async function loadSchedeRegioni() {
   if (_schedeRegioni) return _schedeRegioni;
   const rows = await sbGet('/rest/v1/schede_regioni?select=*', authToken);
+  console.log('schede_regioni caricate:', rows ? rows.length : 'null', rows && rows.message ? rows.message : '');
   _schedeRegioni = {};
   for (const r of (rows||[])) _schedeRegioni[r.regione.toLowerCase()] = r;
+  console.log('chiavi schede:', Object.keys(_schedeRegioni).join(', '));
   return _schedeRegioni;
 }
 
@@ -1214,24 +1216,32 @@ function renderEsameTeorica(panel, q) {
   if (q.tipo === 'vf') {
     panel.innerHTML = `
       <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q.categoria || 'Domanda teorica'} — Vero o Falso</div>
-      <div style="font-size:15px; line-height:1.6; margin-bottom:1.25rem">${q.d}</div>
+      <div style="font-size:15px; line-height:1.6; margin-bottom:1.25rem" id="esame-testo">${q.d}</div>
       <div class="bacca-group">
         <button class="bacca-btn" id="evf-V" onclick="rispostaEsameVF(true)">✓ Vero</button>
         <button class="bacca-btn" id="evf-F" onclick="rispostaEsameVF(false)">✗ Falso</button>
       </div>
       <div id="esame-feedback" style="margin-top:.75rem"></div>`;
+    evidenziaTermini(q.d).then(html => {
+      const el = document.getElementById('esame-testo');
+      if (el) el.innerHTML = html;
+    });
   } else {
     const opts = shuffle(q.ops.map(o=>({...o})));
     q._optsShuffled = opts;
     panel.innerHTML = `
       <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q.categoria || 'Domanda teorica'} — Scelta multipla</div>
-      <div style="font-size:15px; line-height:1.6; margin-bottom:1.25rem">${q.d}</div>
+      <div style="font-size:15px; line-height:1.6; margin-bottom:1.25rem" id="esame-testo">${q.d}</div>
       <div class="options-grid">
         ${opts.map((o,i)=>`<div class="option-item" id="esm-${i}" onclick="togEsameSM(${i})"><div class="option-check" id="esm-check-${i}"></div><span>${o.t}</span></div>`).join('')}
       </div>
       <div id="esame-feedback" style="margin-top:.75rem"></div>
       <div style="margin-top:.75rem"><button class="btn primary" onclick="rispostaEsameSM()">Verifica</button></div>`;
     q._selSM = new Set();
+    evidenziaTermini(q.d).then(html => {
+      const el = document.getElementById('esame-testo');
+      if (el) el.innerHTML = html;
+    });
   }
 }
 
@@ -2380,8 +2390,8 @@ async function loadGeoSupabase() {
   if (geoLoaded || geoLoading) return;
   geoLoading = true;
   try {
-    const h = { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcWdtd2Nybmh4ZmRma2ZqaXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3MTcsImV4cCI6MjA5NDM5OTcxN30.gOVk3CjeT20MeZORLUFvL4Jd1FXJJSSRczUmUUANxXY', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcWdtd2Nybmh4ZmRma2ZqaXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3MTcsImV4cCI6MjA5NDM5OTcxN30.gOVk3CjeT20MeZORLUFvL4Jd1FXJJSSRczUmUUANxXY' };
-    const base = 'https://ypqgmwcrnhxfdfkfjivc.supabase.co/rest/v1';
+    const h = sbHeaders(authToken);
+    const base = SUPABASE_URL;
 
     // Fetch all tables in parallel
     const [rPaesi, rRegioni, rDocg, rAreali, rVitigni, rVR, rVD, rAV] = await Promise.all([
@@ -2897,12 +2907,28 @@ async function loadDomandeSupabase() {
   }
   supabaseLoading = true;
   try {
-    // Carica tutte le domande
-    const domande = await sbGet('/rest/v1/domande?select=*,livello&order=categoria,id', authToken);
+    // Carica tutte le domande con paginazione (Supabase limita a 1000 righe per request)
+    const domande = [];
+    let offset = 0;
+    while (true) {
+      const batch = await sbGet('/rest/v1/domande?select=*,livello&order=categoria,id&limit=1000&offset=' + offset, authToken);
+      if (!batch || !batch.length) break;
+      domande.push(...batch);
+      if (batch.length < 1000) break;
+      offset += 1000;
+    }
 
-    // Carica tutte le opzioni
-    const opzioni = await sbGet('/rest/v1/opzioni?select=*&order=domanda_id,ordine&limit=5000', authToken);
-    console.log('Opzioni caricate:', opzioni ? opzioni.length : 'null/undefined', opzioni && opzioni.length ? 'ok' : 'ERRORE', opzioni && opzioni.message ? opzioni.message : '');
+    // Carica tutte le opzioni con paginazione
+    const opzioni = [];
+    offset = 0;
+    while (true) {
+      const batch = await sbGet('/rest/v1/opzioni?select=*&order=domanda_id,ordine&limit=1000&offset=' + offset, authToken);
+      if (!batch || !batch.length) break;
+      opzioni.push(...batch);
+      if (batch.length < 1000) break;
+      offset += 1000;
+    }
+    console.log('Domande caricate:', domande.length, '— Opzioni caricate:', opzioni.length);
 
     // Mappa opzioni per domanda_id
     const opzMap = {};
@@ -3764,6 +3790,7 @@ feedback = function(ok) {
     if (mode === 'vitigno') {
       aggiungiBtnScheda('vitigno', selected);
     } else if (mode === 'area' && country === 'italia') {
+      console.log('Scheda regione richiesta per:', selected);
       aggiungiBtnScheda('regione', selected);
     }
   }
