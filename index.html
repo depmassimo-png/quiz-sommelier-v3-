@@ -372,6 +372,13 @@ tr:last-child td { border-bottom:none; }
 .modal-tag { font-size: 11px; padding: 3px 8px; border-radius: 20px; background: var(--bg-secondary); color: var(--text-secondary); border: 0.5px solid var(--border-light); }
 .modal-tag.docg { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-border); }
 .modal-tag.regione { background: var(--green-bg); color: var(--green-text); border-color: var(--green-border); }
+.avviso-box {
+  background: var(--yellow-bg); color: var(--yellow-text);
+  border-left: 3px solid var(--yellow-border);
+  padding: 10px 14px; border-radius: var(--radius-md);
+  font-size: 12px; line-height: 1.5; margin-top: .75rem;
+}
+.avviso-box strong { font-weight: 500; }
 .btn-scheda {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 6px 12px; border-radius: var(--radius-md);
@@ -455,7 +462,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-app" style="display:none; width:100%;">
   <!-- Top bar -->
   <div class="topbar" style="max-width:900px; margin:0 auto .75rem;">
-    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.74</span></span>
+    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.75</span></span>
     <div class="topbar-user">
       <span id="topbar-username" style="font-size:13px;"></span>
       <span id="topbar-badge" class="topbar-badge"></span>
@@ -502,7 +509,7 @@ tr:last-child td { border-bottom:none; }
     </div>
   </div>
   <div style="max-width:900px; margin:.5rem auto 0; text-align:right;">
-    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.74</span>
+    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.75</span>
   </div>
 </div>
 
@@ -700,7 +707,7 @@ tr:last-child td { border-bottom:none; }
 </div>
 
 <script>
-const APP_VERSION = '2.74';
+const APP_VERSION = '2.75';
 const SUPABASE_URL = 'https://ypqgmwcrnhxfdfkfjivc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcWdtd2Nybmh4ZmRma2ZqaXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3MTcsImV4cCI6MjA5NDM5OTcxN30.gOVk3CjeT20MeZORLUFvL4Jd1FXJJSSRczUmUUANxXY';
 const CODICE_CLASSE = 'SOMMELIER2026';
@@ -1035,6 +1042,8 @@ async function mostraSchedaVitigno(nomeVitigno, paese) {
       <div class="modal-tags">${s.docg_associate.map(d=>`<span class="modal-tag docg">${d}</span>`).join('')}</div>
     </div>`;
   }
+
+  if (s.avviso_quiz) html += `<div class="avviso-box">⚠️ <strong>Differenza tra scheda e quiz</strong><br>${s.avviso_quiz}</div>`;
 
   if (s.note) html += `<div class="modal-section"><h4>Note</h4><p>${s.note}</p></div>`;
 
