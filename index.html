@@ -1368,8 +1368,8 @@ function renderEsameGeo(panel, q) {
       <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q._paese==='italia'?'🇮🇹':'🇫🇷'} Vitigno</div>
       <div style="font-size:15px; line-height:1.6; margin-bottom:1.25rem">Qual è il colore della bacca di <strong>${q._entita}</strong>?</div>
       <div class="bacca-group">
-        <button class="bacca-btn" id="ebacca-B" onclick="rispostaEsameGeo('B','${corretta}','${q._entita}','${q._paese}','${q._tipo}')">🍇 Bacca Bianca</button>
-        <button class="bacca-btn" id="ebacca-N" onclick="rispostaEsameGeo('N','${corretta}','${q._entita}','${q._paese}','${q._tipo}')">🍇 Bacca Nera</button>
+        <button class="bacca-btn" id="ebacca-B" onclick="rispostaEsameGeo('B','${corretta}','${q._entita.replace(/'/g,"\'")}','${q._paese}','${q._tipo}')">🍇 Bacca Bianca</button>
+        <button class="bacca-btn" id="ebacca-N" onclick="rispostaEsameGeo('N','${corretta}','${q._entita.replace(/'/g,"\'")}','${q._paese}','${q._tipo}')">🍇 Bacca Nera</button>
       </div>
       <div id="esame-feedback" style="margin-top:.75rem"></div>`;
 
@@ -3702,8 +3702,8 @@ function renderCompGeo(panel, q) {
     panel.innerHTML=`<div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q._paese==='italia'?'🇮🇹':'🇫🇷'} Vitigno</div>
       <div style="font-size:15px;line-height:1.6;margin-bottom:1.25rem">Qual è il colore della bacca di <strong>${q._entita}</strong>?</div>
       <div class="bacca-group">
-        <button class="bacca-btn" onclick="rispostaCompGeo('B','${vdata.bacca}','${q._entita}','${q._paese}','vitigno')">🍇 Bacca Bianca</button>
-        <button class="bacca-btn" onclick="rispostaCompGeo('N','${vdata.bacca}','${q._entita}','${q._paese}','vitigno')">🍇 Bacca Nera</button>
+        <button class="bacca-btn" onclick="rispostaCompGeo('B','${vdata.bacca}','${q._entita.replace(/'/g,"\'")}','${q._paese}','vitigno')">🍇 Bacca Bianca</button>
+        <button class="bacca-btn" onclick="rispostaCompGeo('N','${vdata.bacca}','${q._entita.replace(/'/g,"\'")}','${q._paese}','vitigno')">🍇 Bacca Nera</button>
       </div>
       <div id="comp-feedback" style="margin-top:.75rem"></div>`;
   } else {
