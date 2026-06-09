@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Sommelier · Live</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #1a1530; --bg2: #251d44; --card: #2d2456; --card2: #372c66;
+    --text: #ffffff; --muted: #b9b0d8; --line: rgba(255,255,255,0.14);
+    --brand: #7c4dff; --brand2: #9d6bff;
+    --c-red:#e21b3c; --c-blue:#1368ce; --c-yellow:#d89e00; --c-green:#26890c;
+    --ok:#26890c; --ko:#e21b3c;
+    --radius: 14px;
+  }
+  html,body { height:100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, #34265f 0%, var(--bg) 60%);
+    color: var(--text); min-height: 100vh; display:flex; flex-direction:column; align-items:center;
+    padding: 1.1rem 0.9rem 2.5rem; -webkit-tap-highlight-color: transparent;
+  }
+  header.top { text-align:center; margin: 0.4rem 0 1.4rem; }
+  header.top h1 { font-size: 22px; font-weight: 700; letter-spacing:-0.02em; }
+  header.top p { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+  header.top .pill { display:inline-block; margin-top:8px; font-size:11px; color:var(--muted); border:0.5px solid var(--line); border-radius:999px; padding:3px 10px; }
+  .wrap { width:100%; max-width: 880px; }
+  .screen { display:none; }
+  .screen.active { display:block; animation: fade .25s ease; }
+  @keyframes fade { from{opacity:0; transform: translateY(6px);} to{opacity:1; transform:none;} }
+
+  .card { background: var(--card); border:0.5px solid var(--line); border-radius: var(--radius); padding: 1.4rem; }
+  .card + .card { margin-top: 1rem; }
+  h2 { font-size: 19px; font-weight:600; margin-bottom: 0.2rem; }
+  .sub { font-size: 13px; color: var(--muted); margin-bottom: 1.1rem; line-height:1.5; }
+  label.fl { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 5px 2px; }
+  input, select {
+    width:100%; padding: 12px 14px; font-size:15px; font-family:inherit; border-radius: 10px;
+    background: var(--bg2); color: var(--text); border:0.5px solid var(--line); outline:none;
+  }
+  input:focus, select:focus { border-color: var(--brand2); }
+  .field { margin-bottom: 0.9rem; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:0.9rem; }
+
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding: 13px 20px; font-size:15px; font-weight:600; font-family:inherit; cursor:pointer;
+    border-radius: 10px; border:0.5px solid var(--line); background: var(--card2); color:var(--text);
+    width:100%; min-height:48px; transition: transform .05s ease, filter .15s ease; }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { background: var(--brand); border-color: transparent; }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn.ghost { background: transparent; }
+  .btn.big { font-size: 17px; padding: 16px; }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn-row { display:flex; gap:.75rem; margin-top: 1rem; }
+  .err { color:#ff9d9d; font-size:13px; margin-top:.6rem; min-height: 1em; }
+
+  .choice-cards { display:grid; grid-template-columns:1fr 1fr; gap: 1rem; margin-top:.4rem; }
+  .choice { background: var(--card2); border:0.5px solid var(--line); border-radius: var(--radius);
+    padding: 1.6rem 1.2rem; text-align:center; cursor:pointer; }
+  .choice:hover { border-color: var(--brand2); }
+  .choice .ico { font-size: 38px; }
+  .choice .t { font-size: 16px; font-weight:600; margin-top:.5rem; }
+  .choice .d { font-size: 12.5px; color: var(--muted); margin-top:.3rem; line-height:1.45; }
+
+  /* PIN display */
+  .pin-box { text-align:center; padding: 1rem 0 .4rem; }
+  .pin-box .lbl { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.12em; }
+  .pin-box .pin { font-size: 54px; font-weight:800; letter-spacing: .14em; margin-top:4px; }
+  @media (max-width:520px){ .pin-box .pin { font-size: 42px; } }
+  .pin-box .url { font-size:12.5px; color:var(--muted); margin-top:8px; }
+
+  /* roster */
+  .roster { display:flex; flex-wrap:wrap; gap:8px; margin-top:1rem; min-height: 40px; }
+  .tag { background: var(--card2); border:0.5px solid var(--line); border-radius:999px; padding:7px 14px; font-size:14px; font-weight:500; animation: pop .25s ease; }
+  @keyframes pop { from{transform:scale(.8); opacity:0;} to{transform:scale(1); opacity:1;} }
+  .count-badge { font-size:13px; color:var(--muted); }
+
+  /* question / host */
+  .qmeta { display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--muted); margin-bottom:.8rem; }
+  .timer { font-size: 30px; font-weight:800; font-variant-numeric: tabular-nums; }
+  .timer.warn { color:#ffd54a; } .timer.danger { color:#ff6b6b; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.45;} }
+  .qtext { font-size: 24px; font-weight:700; line-height:1.35; text-align:center; padding: 1.2rem 0.5rem; }
+  @media (max-width:520px){ .qtext { font-size:19px; } }
+  .qcat { text-align:center; font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); }
+  .answered-count { text-align:center; font-size:14px; color:var(--muted); margin-top:.4rem; }
+
+  .opts { display:grid; grid-template-columns:1fr 1fr; gap: .8rem; margin-top: 1.1rem; }
+  @media (max-width:520px){ .opts { gap:.6rem; } }
+  .opt { display:flex; align-items:center; gap:12px; padding: 16px 16px; border-radius:12px; cursor:pointer;
+    color:#fff; font-size:16px; font-weight:600; border:none; text-align:left; min-height:64px; font-family:inherit;
+    transition: transform .05s ease, filter .15s; }
+  .opt:active { transform: translateY(1px); }
+  .opt .shape { font-size:20px; flex-shrink:0; width:26px; text-align:center; }
+  .opt.c0 { background: var(--c-red); } .opt.c1 { background: var(--c-blue); }
+  .opt.c2 { background: var(--c-yellow); } .opt.c3 { background: var(--c-green); }
+  .opt.dim { filter: grayscale(.6) brightness(.6); }
+  .opt.sel { outline: 4px solid #fff; outline-offset: -4px; }
+  .opt .barwrap { margin-left:auto; display:flex; align-items:center; gap:8px; }
+  .opt .cnt { font-variant-numeric:tabular-nums; font-size:15px; }
+  .opt .mark { font-size:20px; }
+  .player-opts .opt { justify-content:center; min-height: 84px; font-size:0; }
+  .player-opts .opt .shape { font-size: 34px; width:auto; }
+
+  /* result / feedback big */
+  .big-feedback { text-align:center; padding: 1.6rem 0; }
+  .big-feedback .emoji { font-size: 64px; }
+  .big-feedback .msg { font-size: 24px; font-weight:700; margin-top:.4rem; }
+  .big-feedback .pts { font-size: 16px; color:var(--muted); margin-top:.3rem; }
+  .big-feedback.good .msg { color:#7be07b; } .big-feedback.bad .msg { color:#ff8a8a; }
+
+  /* leaderboard */
+  .lb { margin-top: .6rem; }
+  .lb-row { display:flex; align-items:center; gap:12px; padding: 12px 14px; border-radius:10px; background: var(--card2); margin-bottom:8px; border:0.5px solid var(--line); }
+  .lb-row .rank { font-size:18px; font-weight:800; width:30px; text-align:center; color:var(--muted); }
+  .lb-row.top1 .rank { color:#ffd54a; } .lb-row.top2 .rank { color:#cfd3da; } .lb-row.top3 .rank { color:#e0a06a; }
+  .lb-row .nm { font-size:16px; font-weight:600; }
+  .lb-row .sc { margin-left:auto; font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .lb-row .delta { font-size:12px; color:#7be07b; margin-left:6px; }
+  .lb-row.me { border-color: var(--brand2); background: #3a2e74; }
+
+  .podium { display:flex; align-items:flex-end; justify-content:center; gap: 14px; margin: 1.4rem 0; }
+  .pod { text-align:center; }
+  .pod .nm { font-size:14px; font-weight:600; margin-bottom:6px; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pod .bar { width: 92px; border-radius:10px 10px 0 0; display:flex; align-items:flex-start; justify-content:center; padding-top:8px; font-weight:800; }
+  .pod.p1 .bar { height: 130px; background: linear-gradient(#ffd54a,#d8a200); color:#3a2c00; }
+  .pod.p2 .bar { height: 100px; background: linear-gradient(#dfe3ea,#aeb4bf); color:#2a2f38; }
+  .pod.p3 .bar { height: 78px;  background: linear-gradient(#e7ad77,#b9763c); color:#3a2207; }
+  .pod .sc { font-size:13px; color:var(--muted); margin-top:6px; }
+
+  .cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:4px;
+    max-height: 280px; overflow-y:auto; background: var(--bg2); border-radius:10px; padding:10px; border:0.5px solid var(--line); }
+  .cat-grid label { display:flex; align-items:center; gap:9px; font-size:14px; padding:6px 4px; cursor:pointer; }
+  .cat-grid input { width:17px; height:17px; }
+  .mini { display:flex; gap:.5rem; margin-top:8px; }
+  .btn-sm { padding:7px 12px; font-size:12.5px; border-radius:8px; border:0.5px solid var(--line); background:var(--card2); color:var(--text); cursor:pointer; font-family:inherit; }
+  .loading { text-align:center; color:var(--muted); padding:2rem; font-size:14px; }
+  .footer-note { text-align:center; font-size:11.5px; color:var(--muted); margin-top:1.5rem; }
+  .source-toggle { display:flex; gap:.5rem; background:var(--bg2); border-radius:10px; padding:4px; border:0.5px solid var(--line); }
+  .source-toggle button { flex:1; padding:9px; border:none; background:transparent; color:var(--muted); border-radius:7px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .source-toggle button.on { background: var(--brand); color:#fff; }
+  .hint { font-size:12.5px; color:var(--muted); margin-top:.5rem; line-height:1.5; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>🍷 Quiz Sommelier · Live</h1>
+  <p>Sfida dal vivo in stile Kahoot — più giocatori, stesso momento</p>
+  <span class="pill" id="conn-pill">app indipendente · nessun impatto sul quiz standalone</span>
+</header>
+
+<div class="wrap">
+
+  <!-- ===================== HOME ===================== -->
+  <section class="screen active" id="s-home">
+    <div class="card">
+      <h2>Come vuoi partecipare?</h2>
+      <p class="sub">Il docente crea la partita e mostra il PIN. Gli studenti entrano con PIN e nickname, senza account.</p>
+      <div class="choice-cards">
+        <div class="choice" onclick="goHostLogin()">
+          <div class="ico">👨‍🏫</div>
+          <div class="t">Sono il docente</div>
+          <div class="d">Crea una partita, scegli le domande dal banco e conduci il gioco.</div>
+        </div>
+        <div class="choice" onclick="show('s-join')">
+          <div class="ico">🧑‍🎓</div>
+          <div class="t">Partecipa</div>
+          <div class="d">Inserisci il PIN mostrato in aula e il tuo nickname.</div>
+        </div>
+      </div>
+    </div>
+    <p class="footer-note">Vuoi allenarti da solo? Usa il <a href="index.html" style="color:var(--brand2)">quiz standalone</a>.</p>
+  </section>
+
+  <!-- ===================== PLAYER: JOIN ===================== -->
+  <section class="screen" id="s-join">
+    <div class="card">
+      <h2>Entra nella partita</h2>
+      <p class="sub">Chiedi il PIN al docente.</p>
+      <div class="field">
+        <label class="fl">PIN partita</label>
+        <input id="join-pin" inputmode="numeric" autocomplete="off" placeholder="es. 482913" maxlength="6" style="font-size:24px;letter-spacing:.18em;text-align:center;font-weight:700">
+      </div>
+      <div class="field">
+        <label class="fl">Il tuo nickname</label>
+        <input id="join-nick" autocomplete="off" placeholder="es. Marco" maxlength="20">
+      </div>
+      <button class="btn primary big" onclick="playerJoin()">Entra →</button>
+      <div class="err" id="join-err"></div>
+      <button class="btn ghost" style="margin-top:.6rem" onclick="show('s-home')">← Indietro</button>
+    </div>
+  </section>
+
+  <!-- ===================== PLAYER: LOBBY ===================== -->
+  <section class="screen" id="s-plobby">
+    <div class="card" style="text-align:center">
+      <h2>Ci sei! 🎉</h2>
+      <p class="sub">Sei in attesa che il docente avvii la partita.</p>
+      <div class="tag" id="plobby-nick" style="font-size:18px;display:inline-block">—</div>
+      <div class="count-badge" id="plobby-count" style="margin-top:1rem">—</div>
+      <div class="loading">⏳ In attesa dell'avvio…</div>
+    </div>
+  </section>
+
+  <!-- ===================== PLAYER: QUESTION ===================== -->
+  <section class="screen" id="s-pquestion">
+    <div class="card">
+      <div class="qmeta">
+        <span id="pq-counter">—</span>
+        <span class="timer" id="pq-timer">—</span>
+      </div>
+      <div class="qcat" id="pq-cat"></div>
+      <div class="qtext" id="pq-text">—</div>
+      <div id="pq-multi-hint" class="hint" style="text-align:center;display:none">Selezione multipla — tocca tutte le risposte corrette, poi conferma.</div>
+      <div class="opts player-opts" id="pq-opts"></div>
+      <button class="btn primary" id="pq-confirm" style="margin-top:1rem;display:none" onclick="playerConfirmMulti()">Conferma risposta</button>
+      <div class="answered-count" id="pq-status"></div>
+    </div>
+  </section>
+
+  <!-- ===================== PLAYER: RESULT ===================== -->
+  <section class="screen" id="s-presult">
+    <div class="card">
+      <div class="big-feedback" id="pres-fb">
+        <div class="emoji">⏳</div>
+        <div class="msg">—</div>
+        <div class="pts" id="pres-pts"></div>
+      </div>
+      <div class="lb" id="pres-lb"></div>
+    </div>
+  </section>
+
+  <!-- ===================== HOST: LOGIN ===================== -->
+  <section class="screen" id="s-login">
+    <div class="card">
+      <h2>Accesso docente</h2>
+      <p class="sub">Usa l'account che usi già nel quiz. Serve solo per leggere il banco domande (in sola lettura).</p>
+      <div class="field"><label class="fl">Email</label><input id="login-email" type="email" autocomplete="username" placeholder="email@esempio.it"></div>
+      <div class="field"><label class="fl">Password</label><input id="login-pwd" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <button class="btn primary big" onclick="hostLogin()" id="login-btn">Accedi →</button>
+      <div class="err" id="login-err"></div>
+      <div class="hint" style="margin-top:1rem">Non vuoi accedere? Puoi comunque <a href="#" onclick="hostUseSample();return false" style="color:var(--brand2)">creare una partita con il set di domande incluso</a>.</div>
+      <button class="btn ghost" style="margin-top:.8rem" onclick="show('s-home')">← Indietro</button>
+    </div>
+  </section>
+
+  <!-- ===================== HOST: SETUP ===================== -->
+  <section class="screen" id="s-setup">
+    <div class="card">
+      <h2>Configura la partita</h2>
+      <p class="sub" id="setup-sub">Scegli le domande e le impostazioni di gioco.</p>
+
+      <div class="field">
+        <label class="fl">Sorgente domande</label>
+        <div class="source-toggle" id="src-toggle">
+          <button id="src-db" class="on" onclick="setSource('db')">📚 Banco domande (Supabase)</button>
+          <button id="src-sample" onclick="setSource('sample')">🍷 Set incluso</button>
+        </div>
+        <div class="hint" id="src-hint">Domande lette in sola lettura dal database del quiz. Nessuna modifica ai dati.</div>
+      </div>
+
+      <div id="db-cats-wrap">
+        <label class="fl">Categorie</label>
+        <div class="cat-grid" id="cat-grid"><div class="loading">⏳ Caricamento categorie…</div></div>
+        <div class="mini">
+          <button class="btn-sm" onclick="selectAllCats(true)">Tutte</button>
+          <button class="btn-sm" onclick="selectAllCats(false)">Nessuna</button>
+        </div>
+      </div>
+
+      <div class="row2" style="margin-top:1rem">
+        <div class="field"><label class="fl">Numero domande</label><input id="setup-ndom" type="number" value="10" min="3" max="50"></div>
+        <div class="field"><label class="fl">Secondi per domanda</label><input id="setup-secs" type="number" value="20" min="5" max="120"></div>
+      </div>
+
+      <button class="btn primary big" onclick="hostCreateGame()" id="create-btn">Crea partita →</button>
+      <div class="err" id="setup-err"></div>
+      <button class="btn ghost" style="margin-top:.8rem" onclick="show('s-home')">← Esci</button>
+    </div>
+  </section>
+
+  <!-- ===================== HOST: LOBBY ===================== -->
+  <section class="screen" id="s-hlobby">
+    <div class="card">
+      <div class="pin-box">
+        <div class="lbl">PIN di gioco</div>
+        <div class="pin" id="host-pin">——————</div>
+        <div class="url">Su <strong id="host-url">questa pagina</strong> → "Partecipa" → inserisci il PIN</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1rem">
+        <strong>Giocatori in attesa</strong>
+        <span class="count-badge" id="hlobby-count">0 connessi</span>
+      </div>
+      <div class="roster" id="hlobby-roster"><span class="count-badge">In attesa di giocatori…</span></div>
+      <button class="btn primary big" style="margin-top:1.4rem" onclick="hostStart()" id="start-btn">▶ Avvia partita</button>
+      <button class="btn ghost" style="margin-top:.7rem" onclick="hostQuit()">Annulla partita</button>
+    </div>
+  </section>
+
+  <!-- ===================== HOST: QUESTION ===================== -->
+  <section class="screen" id="s-hquestion">
+    <div class="card">
+      <div class="qmeta">
+        <span id="hq-counter">—</span>
+        <span class="timer" id="hq-timer">—</span>
+      </div>
+      <div class="qcat" id="hq-cat"></div>
+      <div class="qtext" id="hq-text">—</div>
+      <div class="opts" id="hq-opts"></div>
+      <div class="answered-count" id="hq-answered">0 risposte</div>
+      <div class="btn-row">
+        <button class="btn" onclick="hostRevealNow()" id="reveal-btn">⏭ Mostra risposta</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== HOST: REVEAL / LEADERBOARD ===================== -->
+  <section class="screen" id="s-hreveal">
+    <div class="card">
+      <h2 id="hrev-title">Classifica</h2>
+      <p class="sub" id="hrev-sub"></p>
+      <div class="lb" id="hrev-lb"></div>
+      <button class="btn primary big" style="margin-top:1rem" onclick="hostNext()" id="next-btn">Prossima domanda →</button>
+    </div>
+  </section>
+
+  <!-- ===================== FINAL (host & player) ===================== -->
+  <section class="screen" id="s-final">
+    <div class="card">
+      <h2 style="text-align:center" id="final-title">🏆 Risultati finali</h2>
+      <div class="podium" id="final-podium"></div>
+      <div class="lb" id="final-lb"></div>
+      <div class="btn-row" id="final-actions"></div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ===========================================================
+   Quiz Sommelier · LIVE  (app indipendente, stile Kahoot)
+   - Realtime Broadcast/Presence per la sincronizzazione live
+   - Nessuna scrittura sul database: domande lette in sola lettura
+   =========================================================== */
+
+const SUPABASE_URL = 'https://ypqgmwcrnhxfdfkfjivc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcWdtd2Nybmh4ZmRma2ZqaXZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjM3MTcsImV4cCI6MjA5NDM5OTcxN30.gOVk3CjeT20MeZORLUFvL4Jd1FXJJSSRczUmUUANxXY';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: false }
+});
+
+/* ---------- utility ---------- */
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active', s.id===id)); window.scrollTo(0,0); }
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function shuffle(a){ a=[...a]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function genPin(){ return String(Math.floor(100000 + Math.random()*900000)); }
+const SHAPES = ['▲','◆','●','■'];
+
+/* ===========================================================
+   SET DI DOMANDE INCLUSO (fallback senza login)
+   =========================================================== */
+const SAMPLE_QUESTIONS = [
+  { cat:'Vitigni', q:'Qual è il vitigno principale del Brunello di Montalcino?', opts:['Sangiovese','Nebbiolo','Barbera','Montepulciano'], correct:[0] },
+  { cat:'Regioni', q:'In quale regione si produce il Barolo?', opts:['Piemonte','Toscana','Veneto','Puglia'], correct:[0] },
+  { cat:'Spumanti', q:'Con quale metodo è prodotto il Franciacorta?', opts:['Metodo Classico','Charmat (Martinotti)','Ancestrale','Solera'], correct:[0] },
+  { cat:'Vitigni', q:'Di che colore è la bacca dello Chardonnay?', opts:['Bianca','Nera','Grigia','Rosata'], correct:[0] },
+  { cat:'Denominazioni', q:'La sigla "AOC" è tipica di quale paese?', opts:['Francia','Italia','Spagna','Germania'], correct:[0] },
+  { cat:'Vitigni', q:'Quale vitigno è la base del Chianti?', opts:['Sangiovese','Nebbiolo','Primitivo','Corvina'], correct:[0] },
+  { cat:'Vitigni', q:'Il Prosecco è prodotto principalmente con quale vitigno?', opts:['Glera','Garganega','Trebbiano','Verdicchio'], correct:[0] },
+  { cat:'Classificazioni', q:'In quale anno fu stilata la classificazione del Médoc a Bordeaux?', opts:['1855','1789','1900','1932'], correct:[0] },
+  { cat:'Stili', q:'Il Sauternes è prevalentemente un vino…', opts:['Dolce (muffa nobile)','Secco','Spumante','Rosato'], correct:[0] },
+  { cat:'Regioni', q:'Quale regione francese è celebre per Pinot Noir e Chardonnay in purezza?', opts:['Borgogna','Bordeaux','Rodano','Alsazia'], correct:[0] },
+  { cat:'Enologia', q:'Quale gas si sviluppa durante la fermentazione alcolica?', opts:['Anidride carbonica (CO₂)','Ossigeno','Azoto','Metano'], correct:[0] },
+  { cat:'Enologia', q:'La "muffa nobile" è causata da quale fungo?', opts:['Botrytis cinerea','Peronospora','Oidio','Penicillium'], correct:[0] },
+  { cat:'Regioni', q:'Il Lambrusco è tipico di quale regione?', opts:['Emilia-Romagna','Lazio','Sicilia','Sardegna'], correct:[0] },
+  { cat:'Vitigni', q:'Quale di questi è un vitigno a bacca bianca?', opts:['Vermentino','Aglianico','Nero d\'Avola','Sagrantino'], correct:[0] },
+  { cat:'Denominazioni', q:'Lo Champagne può essere prodotto solo in quale paese?', opts:['Francia','Italia','Belgio','Lussemburgo'], correct:[0] },
+  { cat:'Vitigni', q:'Quale vitigno è protagonista dell\'Amarone della Valpolicella?', opts:['Corvina','Sangiovese','Nebbiolo','Glera'], correct:[0] },
+  { cat:'Servizio', q:'Qual è la temperatura di servizio ideale per un rosso strutturato?', opts:['16-18 °C','6-8 °C','2-4 °C','22-24 °C'], correct:[0] },
+  { cat:'Degustazione', q:'I tannini del vino provengono principalmente da…', opts:['Bucce, vinaccioli e legno','Polpa dell\'acino','Zuccheri','Acqua'], correct:[0] },
+  { cat:'Servizio', q:'Quale strumento si usa per ossigenare un vino giovane?', opts:['Decanter','Pipetta','Sifone','Imbuto'], correct:[0] },
+  { cat:'Regioni', q:'Il Nebbiolo dà origine a quale grande vino piemontese?', opts:['Barolo','Dolcetto','Gavi','Asti'], correct:[0] },
+];
+
+/* ===========================================================
+   STATO COMUNE
+   =========================================================== */
+let role = null;            // 'host' | 'player'
+let channel = null;         // realtime channel
+let pin = null;
+let questionSource = 'db';   // 'db' | 'sample'
+
+/* ===========================================================
+   HOST
+   =========================================================== */
+let hostLogged = false;
+let allCategories = [];
+let hostQuestions = [];     // domande della partita (normalizzate)
+let players = new Map();    // pid -> {nickname, score, lastPoints, streak}
+let qIndex = -1;
+let curAnswers = new Map(); // pid -> {optionIds, ms}
+let qTimer = null, qDeadline = 0, qOpen = false;
+
+function goHostLogin(){
+  if (hostLogged){ show('s-setup'); return; }
+  show('s-login');
+}
+
+async function hostLogin(){
+  const email = $('login-email').value.trim();
+  const pwd = $('login-pwd').value;
+  const err = $('login-err'); err.textContent='';
+  if(!email || !pwd){ err.textContent='Inserisci email e password.'; return; }
+  $('login-btn').disabled = true; $('login-btn').textContent='Accesso…';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
+  $('login-btn').disabled = false; $('login-btn').textContent='Accedi →';
+  if(error || !data?.session){ err.textContent = 'Email o password non corretti.'; return; }
+  hostLogged = true;
+  questionSource = 'db';
+  enterSetup();
+}
+
+function hostUseSample(){
+  questionSource = 'sample';
+  hostLogged = false;
+  enterSetup();
+}
+
+function enterSetup(){
+  show('s-setup');
+  syncSourceUI();
+  if (questionSource === 'db' && hostLogged) loadCategories();
+}
+
+function setSource(src){
+  if (src === 'db' && !hostLogged){
+    if(!confirm('Per usare il banco domande devi accedere come docente. Vai al login?')) return;
+    show('s-login'); return;
+  }
+  questionSource = src;
+  syncSourceUI();
+  if (src==='db' && !allCategories.length) loadCategories();
+}
+
+function syncSourceUI(){
+  $('src-db').classList.toggle('on', questionSource==='db');
+  $('src-sample').classList.toggle('on', questionSource==='sample');
+  $('db-cats-wrap').style.display = questionSource==='db' ? '' : 'none';
+  $('src-hint').textContent = questionSource==='db'
+    ? 'Domande lette in sola lettura dal database del quiz. Nessuna modifica ai dati.'
+    : `Set sommelier incluso nell'app — ${SAMPLE_QUESTIONS.length} domande pronte, nessun login richiesto.`;
+  $('setup-sub').textContent = questionSource==='db'
+    ? 'Scegli le categorie dal banco domande, quante domande e il tempo per ciascuna.'
+    : 'Scegli quante domande e quanto tempo per ciascuna.';
+}
+
+async function loadCategories(){
+  const grid = $('cat-grid');
+  grid.innerHTML = '<div class="loading">⏳ Caricamento categorie…</div>';
+  try {
+    const { data, error } = await sb.from('domande').select('categoria');
+    if (error) throw error;
+    const uniq = [...new Set((data||[]).map(r=>r.categoria).filter(Boolean))].sort();
+    allCategories = uniq;
+    if(!uniq.length){ grid.innerHTML = '<div class="loading">Nessuna categoria trovata.</div>'; return; }
+    grid.innerHTML = uniq.map(c=>`<label><input type="checkbox" class="cat-cb" value="${esc(c)}" checked>${esc(c)}</label>`).join('');
+  } catch(e){
+    grid.innerHTML = `<div class="loading">⚠️ Impossibile leggere le categorie.<br>Puoi usare il <a href="#" onclick="setSource('sample');return false" style="color:var(--brand2)">set incluso</a>.</div>`;
+  }
+}
+
+function selectAllCats(v){ document.querySelectorAll('.cat-cb').forEach(cb=>cb.checked=v); }
+
+async function buildQuestionsFromDB(cats, n){
+  // Legge domande + opzioni in sola lettura
+  const inList = cats;
+  const { data: doms, error: e1 } = await sb.from('domande')
+    .select('id,categoria,tipo,domanda,risposta_corretta')
+    .in('categoria', inList);
+  if (e1) throw e1;
+  const usable = (doms||[]).filter(d => d.tipo==='single' || d.tipo==='multi' || d.tipo==='vf');
+  const picked = shuffle(usable).slice(0, n);
+  const ids = picked.filter(d=>d.tipo!=='vf').map(d=>d.id);
+
+  let optsByQ = {};
+  if (ids.length){
+    const { data: opts, error: e2 } = await sb.from('opzioni')
+      .select('domanda_id,testo,corretta,ordine').in('domanda_id', ids).order('ordine');
+    if (e2) throw e2;
+    for(const o of (opts||[])){ (optsByQ[o.domanda_id] ||= []).push(o); }
+  }
+
+  const out = [];
+  for(const d of picked){
+    if (d.tipo === 'vf'){
+      const correctVero = d.risposta_corretta === true || d.risposta_corretta === 'true';
+      out.push({ cat:d.categoria, q:d.domanda, opts:['Vero','Falso'], correct:[ correctVero?0:1 ] });
+    } else {
+      const list = optsByQ[d.id] || [];
+      if (list.length < 2) continue;
+      // mescola le opzioni mantenendo l'indice del corretto
+      const shuffled = shuffle(list);
+      const correct = [];
+      shuffled.forEach((o,i)=>{ if(o.corretta===true || o.corretta==='true') correct.push(i); });
+      if(!correct.length) continue;
+      out.push({ cat:d.categoria, q:d.domanda, opts: shuffled.slice(0,4).map(o=>o.testo),
+                 correct: correct.filter(i=>i<4) });
+    }
+  }
+  return out.filter(x=>x.correct.length);
+}
+
+async function hostCreateGame(){
+  const err = $('setup-err'); err.textContent='';
+  const n = Math.max(3, Math.min(50, parseInt($('setup-ndom').value)||10));
+  const secs = Math.max(5, Math.min(120, parseInt($('setup-secs').value)||20));
+  window._secsPerQ = secs;
+  $('create-btn').disabled = true; $('create-btn').textContent = 'Preparazione…';
+
+  try {
+    if (questionSource === 'db'){
+      const cats = [...document.querySelectorAll('.cat-cb:checked')].map(cb=>cb.value);
+      if(!cats.length){ err.textContent='Seleziona almeno una categoria.'; throw '_';}
+      hostQuestions = await buildQuestionsFromDB(cats, n);
+      if(hostQuestions.length < 1){ err.textContent='Nessuna domanda valida trovata per queste categorie.'; throw '_'; }
+    } else {
+      hostQuestions = shuffle(SAMPLE_QUESTIONS).slice(0, n);
+    }
+  } catch(e){
+    if (e !== '_') err.textContent = 'Errore nel caricamento delle domande. Prova con il set incluso.';
+    $('create-btn').disabled=false; $('create-btn').textContent='Crea partita →';
+    return;
+  }
+
+  $('create-btn').disabled=false; $('create-btn').textContent='Crea partita →';
+  role = 'host';
+  pin = genPin();
+  players = new Map(); qIndex = -1;
+  await openChannel(pin, 'host');
+  $('host-pin').textContent = pin;
+  $('host-url').textContent = location.host + location.pathname;
+  renderHostRoster();
+  show('s-hlobby');
+}
+
+/* ---------- realtime channel ---------- */
+async function openChannel(p, asRole){
+  if (channel){ try{ await sb.removeChannel(channel); }catch(e){} channel=null; }
+  channel = sb.channel('kgame-'+p, { config: { broadcast:{ self:false }, presence:{ key: (asRole==='host'?'host':myPid) } } });
+
+  if (asRole === 'host'){
+    channel.on('broadcast', { event:'join' }, ({payload}) => hostOnJoin(payload));
+    channel.on('broadcast', { event:'answer' }, ({payload}) => hostOnAnswer(payload));
+    channel.on('presence', { event:'leave' }, ({leftPresences}) => { /* opzionale */ });
+  } else {
+    channel.on('broadcast', { event:'roster' }, ({payload}) => playerOnRoster(payload));
+    channel.on('broadcast', { event:'question' }, ({payload}) => playerOnQuestion(payload));
+    channel.on('broadcast', { event:'progress' }, ({payload}) => playerOnProgress(payload));
+    channel.on('broadcast', { event:'reveal' }, ({payload}) => playerOnReveal(payload));
+    channel.on('broadcast', { event:'final' }, ({payload}) => playerOnFinal(payload));
+    channel.on('broadcast', { event:'closed' }, () => playerOnClosed());
+  }
+
+  await new Promise((resolve)=>{
+    channel.subscribe((status)=>{ if(status==='SUBSCRIBED') resolve(); });
+  });
+}
+
+function bcast(event, payload){ if(channel) channel.send({ type:'broadcast', event, payload }); }
+
+/* ---------- HOST: lobby ---------- */
+function hostOnJoin(p){
+  if(!p || !p.pid) return;
+  if(!players.has(p.pid)) players.set(p.pid, { nickname:p.nickname||'Anonimo', score:0, lastPoints:0, streak:0 });
+  else players.get(p.pid).nickname = p.nickname || players.get(p.pid).nickname;
+  renderHostRoster();
+  // conferma roster (così il nuovo giocatore sa di essere registrato)
+  bcast('roster', { count: players.size, names:[...players.values()].map(v=>v.nickname) });
+  // se la partita è già iniziata, manda lo stato corrente al ritardatario
+  if (qIndex >= 0 && qOpen) sendCurrentQuestion();
+}
+
+function renderHostRoster(){
+  const r = $('hlobby-roster');
+  $('hlobby-count').textContent = players.size + (players.size===1?' connesso':' connessi');
+  if(!players.size){ r.innerHTML = '<span class="count-badge">In attesa di giocatori…</span>'; $('start-btn').disabled=true; return; }
+  $('start-btn').disabled=false;
+  r.innerHTML = [...players.values()].map(p=>`<span class="tag">${esc(p.nickname)}</span>`).join('');
+}
+
+/* ---------- HOST: gameplay ---------- */
+function hostStart(){
+  if(!players.size){ alert('Nessun giocatore connesso.'); return; }
+  qIndex = -1;
+  hostNext();
+}
+
+function hostNext(){
+  qIndex++;
+  if(qIndex >= hostQuestions.length){ hostFinal(); return; }
+  curAnswers = new Map();
+  qOpen = true;
+  sendCurrentQuestion();
+  renderHostQuestion();
+  startHostTimer();
+  show('s-hquestion');
+}
+
+function sendCurrentQuestion(){
+  const q = hostQuestions[qIndex];
+  qDeadline = Date.now() + window._secsPerQ*1000;
+  bcast('question', {
+    qIndex, total: hostQuestions.length, cat: q.cat, q: q.q,
+    opts: q.opts, multi: q.correct.length>1, secs: window._secsPerQ
+  });
+}
+
+function renderHostQuestion(){
+  const q = hostQuestions[qIndex];
+  $('hq-counter').textContent = `Domanda ${qIndex+1} / ${hostQuestions.length}`;
+  $('hq-cat').textContent = q.cat || '';
+  $('hq-text').textContent = q.q;
+  $('hq-opts').innerHTML = q.opts.map((t,i)=>`
+    <div class="opt c${i}" id="hopt-${i}">
+      <span class="shape">${SHAPES[i]}</span><span>${esc(t)}</span>
+      <span class="barwrap"><span class="cnt" id="hcnt-${i}"></span><span class="mark" id="hmark-${i}"></span></span>
+    </div>`).join('');
+  $('hq-answered').textContent = '0 risposte';
+  $('reveal-btn').disabled = false;
+}
+
+function startHostTimer(){
+  clearInterval(qTimer);
+  const tick = ()=>{
+    const left = Math.max(0, Math.ceil((qDeadline - Date.now())/1000));
+    const el = $('hq-timer'); el.textContent = left;
+    el.className = 'timer' + (left<=5?' danger':left<=10?' warn':'');
+    if(left<=0){ clearInterval(qTimer); hostReveal(); }
+  };
+  tick(); qTimer = setInterval(tick, 250);
+}
+
+function hostOnAnswer(p){
+  if(!qOpen || !p || p.qIndex !== qIndex || !players.has(p.pid)) return;
+  if(curAnswers.has(p.pid)) return; // solo la prima risposta
+  curAnswers.set(p.pid, { optionIds: p.optionIds||[], ms: p.ms||0 });
+  $('hq-answered').textContent = `${curAnswers.size} / ${players.size} risposte`;
+  bcast('progress', { answered: curAnswers.size, total: players.size });
+  if(curAnswers.size >= players.size) { clearInterval(qTimer); setTimeout(hostReveal, 400); }
+}
+
+function hostRevealNow(){ clearInterval(qTimer); hostReveal(); }
+
+function hostReveal(){
+  if(!qOpen) return;
+  qOpen = false;
+  $('reveal-btn').disabled = true;
+  const q = hostQuestions[qIndex];
+  const correctSet = new Set(q.correct);
+  const limit = window._secsPerQ*1000;
+  const dist = [0,0,0,0];
+
+  // calcolo punteggi
+  const perPlayer = {}; // pid -> {correct, points}
+  for(const [pid, a] of curAnswers){
+    (a.optionIds||[]).forEach(i=>{ if(i>=0&&i<4) dist[i]++; });
+    const sel = new Set(a.optionIds||[]);
+    const correct = sel.size===correctSet.size && [...correctSet].every(i=>sel.has(i));
+    let pts = 0;
+    if(correct){
+      const frac = Math.max(0, Math.min(1, a.ms/limit));
+      pts = Math.round(1000 - 500*frac);
+      const pl = players.get(pid); pl.streak = (pl.streak||0)+1;
+      if(pl.streak>=3) pts += 100; // bonus serie
+    } else { players.get(pid).streak = 0; }
+    const pl = players.get(pid);
+    pl.score += pts; pl.lastPoints = pts;
+    perPlayer[pid] = { correct, points: pts };
+  }
+  // chi non ha risposto: streak azzerata, lastPoints 0
+  for(const [pid,pl] of players){ if(!curAnswers.has(pid)){ pl.streak=0; pl.lastPoints=0; perPlayer[pid]={correct:false,points:0}; } }
+
+  // mostra distribuzione e risposta corretta sull'host
+  q.opts.forEach((t,i)=>{
+    $('hcnt-'+i).textContent = dist[i] || '';
+    if(correctSet.has(i)) $('hmark-'+i).textContent = '✓';
+    else $('hopt-'+i)?.classList.add('dim');
+  });
+
+  const lb = leaderboard();
+  // broadcast risultato ai giocatori
+  bcast('reveal', { qIndex, correct:q.correct, dist, perPlayer, leaderboard: lb, last: qIndex>=hostQuestions.length-1 });
+
+  // host: dopo un attimo mostra classifica
+  setTimeout(()=>{ renderHostReveal(lb); show('s-hreveal'); }, 1400);
+}
+
+function leaderboard(){
+  return [...players.entries()]
+    .map(([pid,p])=>({ pid, nickname:p.nickname, score:p.score, lastPoints:p.lastPoints }))
+    .sort((a,b)=> b.score-a.score);
+}
+
+function renderHostReveal(lb){
+  const last = qIndex >= hostQuestions.length-1;
+  $('hrev-title').textContent = last ? 'Classifica finale in arrivo…' : 'Classifica';
+  $('hrev-sub').textContent = `Dopo la domanda ${qIndex+1} di ${hostQuestions.length}`;
+  $('hrev-lb').innerHTML = renderLbRows(lb.slice(0,8));
+  $('next-btn').textContent = last ? 'Vedi risultati finali →' : 'Prossima domanda →';
+}
+
+function renderLbRows(lb, mePid){
+  if(!lb.length) return '<div class="loading">Nessun punteggio.</div>';
+  return lb.map((e,i)=>`
+    <div class="lb-row ${i<3?'top'+(i+1):''} ${e.pid===mePid?'me':''}">
+      <span class="rank">${i+1}</span>
+      <span class="nm">${esc(e.nickname)}</span>
+      <span class="sc">${e.score}${e.lastPoints?`<span class="delta">+${e.lastPoints}</span>`:''}</span>
+    </div>`).join('');
+}
+
+function hostFinal(){
+  qOpen = false; clearInterval(qTimer);
+  const lb = leaderboard();
+  bcast('final', { leaderboard: lb });
+  renderFinal(lb, null, true);
+}
+
+function hostQuit(){
+  bcast('closed', {});
+  cleanup();
+  show('s-home');
+}
+
+/* ===========================================================
+   PLAYER
+   =========================================================== */
+let myPid = sessionStorage.getItem('kpid') || ('p_'+Math.random().toString(36).slice(2,9));
+sessionStorage.setItem('kpid', myPid);
+let myNick = '';
+let myAnswer = null;     // {optionIds, ms, sent}
+let pSelMulti = new Set();
+let pqStartTs = 0, pTimer = null, pDeadline = 0, pMulti = false;
+
+async function playerJoin(){
+  const err = $('join-err'); err.textContent='';
+  const p = $('join-pin').value.trim();
+  const nick = $('join-nick').value.trim();
+  if(!/^\d{4,6}$/.test(p)){ err.textContent='PIN non valido.'; return; }
+  if(!nick){ err.textContent='Scegli un nickname.'; return; }
+  myNick = nick.slice(0,20);
+  pin = p; role='player';
+  $('plobby-nick').textContent = myNick;
+  await openChannel(pin, 'player');
+  bcast('join', { pid: myPid, nickname: myNick });
+  $('plobby-count').textContent = 'In attesa…';
+  show('s-plobby');
+  // ri-annuncia dopo poco in caso l'host non fosse ancora pronto
+  setTimeout(()=>bcast('join', { pid: myPid, nickname: myNick }), 800);
+}
+
+function playerOnRoster(p){
+  if($('s-plobby').classList.contains('active')){
+    $('plobby-count').textContent = (p.count||0) + ' giocatori in sala';
+  }
+}
+
+function playerOnQuestion(p){
+  myAnswer = null; pSelMulti = new Set(); pMulti = !!p.multi;
+  pqStartTs = Date.now();
+  pDeadline = Date.now() + (p.secs||20)*1000;
+  $('pq-counter').textContent = `Domanda ${p.qIndex+1} / ${p.total}`;
+  $('pq-cat').textContent = p.cat || '';
+  $('pq-text').textContent = p.q;
+  $('pq-multi-hint').style.display = p.multi ? '' : 'none';
+  $('pq-confirm').style.display = 'none';
+  $('pq-status').textContent = '';
+  $('pq-opts').innerHTML = p.opts.map((t,i)=>`
+    <button class="opt c${i}" id="popt-${i}" onclick="playerPick(${i})" title="${esc(t)}">
+      <span class="shape">${SHAPES[i]}</span><span style="font-size:14px">${esc(t)}</span>
+    </button>`).join('');
+  startPlayerTimer();
+  show('s-pquestion');
+}
+
+function startPlayerTimer(){
+  clearInterval(pTimer);
+  const tick = ()=>{
+    const left = Math.max(0, Math.ceil((pDeadline-Date.now())/1000));
+    const el = $('pq-timer'); el.textContent = left;
+    el.className = 'timer' + (left<=5?' danger':left<=10?' warn':'');
+    if(left<=0){ clearInterval(pTimer); if(!myAnswer) lockNoAnswer(); }
+  };
+  tick(); pTimer = setInterval(tick, 250);
+}
+
+function playerPick(i){
+  if(myAnswer) return;
+  if(pMulti){
+    if(pSelMulti.has(i)){ pSelMulti.delete(i); $('popt-'+i).classList.remove('sel'); }
+    else { pSelMulti.add(i); $('popt-'+i).classList.add('sel'); }
+    $('pq-confirm').style.display = pSelMulti.size ? '' : 'none';
+  } else {
+    submitAnswer([i]);
+  }
+}
+
+function playerConfirmMulti(){
+  if(myAnswer || !pSelMulti.size) return;
+  submitAnswer([...pSelMulti]);
+}
+
+function submitAnswer(optionIds){
+  const ms = Date.now() - pqStartTs;
+  myAnswer = { optionIds, ms };
+  clearInterval(pTimer);
+  bcast('answer', { pid: myPid, qIndex: parseInt($('pq-counter').textContent.split(' ')[1])-1, optionIds, ms });
+  document.querySelectorAll('#pq-opts .opt').forEach((el,i)=>{ if(!optionIds.includes(i)) el.classList.add('dim'); el.style.pointerEvents='none'; });
+  $('pq-confirm').style.display='none';
+  $('pq-status').textContent = '✓ Risposta inviata! In attesa degli altri…';
+}
+
+function lockNoAnswer(){
+  myAnswer = { optionIds: [], ms: 99999 };
+  document.querySelectorAll('#pq-opts .opt').forEach(el=>{ el.classList.add('dim'); el.style.pointerEvents='none'; });
+  $('pq-confirm').style.display='none';
+  $('pq-status').textContent = '⏱ Tempo scaduto!';
+}
+
+function playerOnProgress(p){
+  if($('s-pquestion').classList.contains('active') && myAnswer)
+    $('pq-status').textContent = `✓ Risposta inviata — ${p.answered}/${p.total} hanno risposto`;
+}
+
+function playerOnReveal(p){
+  clearInterval(pTimer);
+  const mine = p.perPlayer?.[myPid];
+  const correct = mine?.correct;
+  const pts = mine?.points || 0;
+  const fb = $('pres-fb');
+  if(myAnswer && myAnswer.optionIds.length){
+    fb.className = 'big-feedback ' + (correct?'good':'bad');
+    fb.querySelector('.emoji').textContent = correct ? '✅' : '❌';
+    fb.querySelector('.msg').textContent = correct ? 'Corretto!' : 'Sbagliato';
+    $('pres-pts').textContent = correct ? `+${pts} punti` : 'Nessun punto';
+  } else {
+    fb.className = 'big-feedback bad';
+    fb.querySelector('.emoji').textContent = '⏱';
+    fb.querySelector('.msg').textContent = 'Nessuna risposta';
+    $('pres-pts').textContent = '';
+  }
+  // posizione personale
+  const lb = p.leaderboard||[];
+  const myRank = lb.findIndex(e=>e.pid===myPid);
+  const myEntry = lb[myRank];
+  $('pres-lb').innerHTML = `
+    <div style="text-align:center;margin:.6rem 0 1rem;color:var(--muted);font-size:14px">
+      ${myEntry ? `Sei <strong style="color:#fff">${myRank+1}°</strong> con <strong style="color:#fff">${myEntry.score}</strong> punti` : ''}
+    </div>` + renderLbRows(lb.slice(0,5), myPid);
+  show('s-presult');
+}
+
+function playerOnFinal(p){ renderFinal(p.leaderboard||[], myPid, false); }
+function playerOnClosed(){ alert('Il docente ha chiuso la partita.'); cleanup(); show('s-home'); }
+
+/* ===========================================================
+   FINALE (condiviso)
+   =========================================================== */
+function renderFinal(lb, mePid, isHost){
+  $('final-title').textContent = '🏆 Risultati finali';
+  // podio top 3
+  const top = lb.slice(0,3);
+  const order = [1,0,2]; // 2°,1°,3° per il podio visivo
+  const pod = $('final-podium');
+  pod.innerHTML = order.filter(i=>top[i]).map(i=>`
+    <div class="pod p${i+1}">
+      <div class="nm">${esc(top[i].nickname)}</div>
+      <div class="bar">${i===0?'🥇':i===1?'🥈':'🥉'}</div>
+      <div class="sc">${top[i].score} pt</div>
+    </div>`).join('');
+  $('final-lb').innerHTML = renderLbRows(lb.slice(0,10), mePid);
+
+  const act = $('final-actions');
+  if(isHost){
+    act.innerHTML = `
+      <button class="btn" onclick="downloadResults()">⬇ Scarica CSV</button>
+      <button class="btn primary" onclick="hostQuit()">Nuova partita</button>`;
+    window._finalLb = lb;
+  } else {
+    act.innerHTML = `<button class="btn primary" onclick="cleanup();show('s-home')">Esci</button>`;
+  }
+  show('s-final');
+}
+
+function downloadResults(){
+  const lb = window._finalLb || leaderboard();
+  let csv = 'Posizione,Nickname,Punteggio\n';
+  lb.forEach((e,i)=>{ csv += `${i+1},"${(e.nickname||'').replace(/"/g,'""')}",${e.score}\n`; });
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `quiz-live-${pin||'risultati'}.csv`;
+  a.click();
+}
+
+/* ---------- cleanup ---------- */
+function cleanup(){
+  try{ clearInterval(qTimer); clearInterval(pTimer); }catch(e){}
+  if(channel){ try{ sb.removeChannel(channel); }catch(e){} channel=null; }
+  players = new Map(); qIndex=-1; qOpen=false; myAnswer=null;
+}
+
+window.addEventListener('beforeunload', ()=>{ try{ if(role==='host' && channel) bcast('closed',{}); }catch(e){} });
+</script>
+</body>
+</html>
