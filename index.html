@@ -462,7 +462,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-app" style="display:none; width:100%;">
   <!-- Top bar -->
   <div class="topbar" style="max-width:900px; margin:0 auto .75rem;">
-    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.76</span></span>
+    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.77</span></span>
     <div class="topbar-user">
       <span id="topbar-username" style="font-size:13px;"></span>
       <span id="topbar-badge" class="topbar-badge"></span>
@@ -509,7 +509,7 @@ tr:last-child td { border-bottom:none; }
     </div>
   </div>
   <div style="max-width:900px; margin:.5rem auto 0; text-align:right;">
-    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.76</span>
+    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.77</span>
   </div>
 </div>
 
@@ -1167,15 +1167,22 @@ async function mostraSchedaRegione(nomeRegione, paese) {
 // ── Evidenzia termini glossario nel testo ────────
 async function evidenziaTermini(testo) {
   const glossario = await loadGlossario();
+  // Ordina dal più lungo al più corto: nell'alternanza la regex prova le
+  // alternative in ordine, così "lieviti indigeni" vince su "lieviti".
   const termini = Object.keys(glossario).sort((a,b)=>b.length-a.length);
-  let risultato = testo;
-  for (const termine of termini) {
-    const regex = new RegExp(`\\b(${termine})\\b`, 'gi');
-    risultato = risultato.replace(regex, (match) =>
-      `<span class="termine-glossario" onclick="mostraGlossario('${termine}')">${match}</span>`
-    );
-  }
-  return risultato;
+  if (!termini.length) return testo;
+  // Escape dei metacaratteri regex nei termini (alcuni termini enologici
+  // possono contenere parentesi, punti, ecc.).
+  const escaped = termini.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const regex = new RegExp(`\\b(${escaped.join('|')})\\b`, 'gi');
+  // UN SOLO passaggio: replace non ri-scansiona il markup inserito, quindi un
+  // termine non può più agganciarsi dentro lo <span>/onclick di un altro.
+  return testo.replace(regex, (match) => {
+    // L'argomento dell'onclick è una stringa JS single-quoted: va messo al
+    // sicuro l'apostrofo (es. "vino d'annata") oltre al backslash.
+    const arg = match.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return `<span class="termine-glossario" onclick="mostraGlossario('${arg}')">${match}</span>`;
+  });
 }
 
 // ── Aggiunge pulsante scheda dopo feedback ───────
