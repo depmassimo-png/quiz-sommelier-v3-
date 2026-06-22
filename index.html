@@ -462,7 +462,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-app" style="display:none; width:100%;">
   <!-- Top bar -->
   <div class="topbar" style="max-width:900px; margin:0 auto .75rem;">
-    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.75</span></span>
+    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.76</span></span>
     <div class="topbar-user">
       <span id="topbar-username" style="font-size:13px;"></span>
       <span id="topbar-badge" class="topbar-badge"></span>
@@ -509,7 +509,7 @@ tr:last-child td { border-bottom:none; }
     </div>
   </div>
   <div style="max-width:900px; margin:.5rem auto 0; text-align:right;">
-    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.75</span>
+    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.76</span>
   </div>
 </div>
 
@@ -1309,6 +1309,14 @@ function renderEsameDomanda() {
   const q = esameQueue[esameIndex];
   const panel = document.getElementById('esame-panel');
 
+  // Reset stato selezione/conferma: la scelta è modificabile finché non si preme Verifica
+  _esameRisposto = false;
+  _esameSMSel = new Set();
+  _esameVFSel = null;
+  _esameBaccaSel = null;
+  _esameAreaSel = null;
+  _esameAreaOpts = [];
+
   // Aggiorna progress
   const pct = Math.round(100 * esameIndex / esameNDom);
   document.getElementById('esame-progress-bar').style.width = pct + '%';
@@ -1328,10 +1336,11 @@ function renderEsameTeorica(panel, q) {
       <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q.categoria || 'Domanda teorica'} — Vero o Falso</div>
       <div style="font-size:15px; line-height:1.6; margin-bottom:1.25rem" id="esame-testo">${q.d}</div>
       <div class="bacca-group">
-        <button class="bacca-btn" id="evf-V" onclick="rispostaEsameVF(true)">✓ Vero</button>
-        <button class="bacca-btn" id="evf-F" onclick="rispostaEsameVF(false)">✗ Falso</button>
+        <button class="bacca-btn" id="evf-V" onclick="selEsameVF(true)">✓ Vero</button>
+        <button class="bacca-btn" id="evf-F" onclick="selEsameVF(false)">✗ Falso</button>
       </div>
-      <div id="esame-feedback" style="margin-top:.75rem"></div>`;
+      <div id="esame-feedback" style="margin-top:.75rem"></div>
+      <div style="margin-top:.75rem"><button class="btn primary" id="esame-verifica-btn" onclick="rispostaEsameVF()">Verifica</button></div>`;
     evidenziaTermini(q.d).then(html => {
       const el = document.getElementById('esame-testo');
       if (el) el.innerHTML = html;
@@ -1346,7 +1355,7 @@ function renderEsameTeorica(panel, q) {
         ${opts.map((o,i)=>`<div class="option-item" id="esm-${i}" onclick="togEsameSM(${i})"><div class="option-check" id="esm-check-${i}"></div><span>${o.t}</span></div>`).join('')}
       </div>
       <div id="esame-feedback" style="margin-top:.75rem"></div>
-      <div style="margin-top:.75rem"><button class="btn primary" onclick="rispostaEsameSM()">Verifica</button></div>`;
+      <div style="margin-top:.75rem"><button class="btn primary" id="esame-verifica-btn" onclick="rispostaEsameSM()">Verifica</button></div>`;
     q._selSM = new Set();
     evidenziaTermini(q.d).then(html => {
       const el = document.getElementById('esame-testo');
@@ -1364,14 +1373,16 @@ function renderEsameGeo(panel, q) {
     const vdata = db.vitigni[q._entita];
     if (!vdata) { esameIndex++; renderEsameDomanda(); return; }
     const corretta = vdata.bacca;
+    q._baccaCorretta = corretta;
     panel.innerHTML = `
       <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q._paese==='italia'?'🇮🇹':'🇫🇷'} Vitigno</div>
       <div style="font-size:15px; line-height:1.6; margin-bottom:1.25rem">Qual è il colore della bacca di <strong>${q._entita}</strong>?</div>
       <div class="bacca-group">
-        <button class="bacca-btn" id="ebacca-B" onclick="rispostaEsameGeo('B','${corretta}','${q._entita.replace(/'/g,"\'")}','${q._paese}','${q._tipo}')">🍇 Bacca Bianca</button>
-        <button class="bacca-btn" id="ebacca-N" onclick="rispostaEsameGeo('N','${corretta}','${q._entita.replace(/'/g,"\'")}','${q._paese}','${q._tipo}')">🍇 Bacca Nera</button>
+        <button class="bacca-btn" id="ebacca-B" onclick="selEsameBacca('B')">🍇 Bacca Bianca</button>
+        <button class="bacca-btn" id="ebacca-N" onclick="selEsameBacca('N')">🍇 Bacca Nera</button>
       </div>
-      <div id="esame-feedback" style="margin-top:.75rem"></div>`;
+      <div id="esame-feedback" style="margin-top:.75rem"></div>
+      <div style="margin-top:.75rem"><button class="btn primary" id="esame-verifica-btn" onclick="rispostaEsameGeo()">Verifica</button></div>`;
 
   } else if (q._tipo === 'area') {
     const regioneData = db.aree[q._entita];
@@ -1390,32 +1401,57 @@ function renderEsameGeo(panel, q) {
     const altreRegioni = shuffle(Object.keys(db.aree).filter(r=>r!==correttaReg)).slice(0,3);
     const opts = shuffle([correttaReg, ...altreRegioni]);
     const label = q._paese === 'italia' ? 'DOCG' : 'Areale';
+    q._areaCorretta = correttaReg;
+    q._areaSottozona = sottozona;
+    _esameAreaOpts = opts;
 
     panel.innerHTML = `
       <div style="font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">${q._paese==='italia'?'🇮🇹':'🇫🇷'} ${label}</div>
       <div style="font-size:15px; line-height:1.6; margin-bottom:1.25rem">In quale regione si trova <strong>${sottozona}</strong>?</div>
       <div class="options-grid">
-        ${opts.map(o=>`<div class="option-item" onclick="rispostaEsameArea(this,'${o.replace(/'/g,"\\'")}','${correttaReg.replace(/'/g,"\\'")}','${sottozona.replace(/'/g,"\\'")}','${q._paese}')"><span>${o}</span></div>`).join('')}
+        ${opts.map((o,idx)=>`<div class="option-item" id="earea-${idx}" onclick="selEsameArea(${idx})"><span>${o}</span></div>`).join('')}
       </div>
-      <div id="esame-feedback" style="margin-top:.75rem"></div>`;
+      <div id="esame-feedback" style="margin-top:.75rem"></div>
+      <div style="margin-top:.75rem"><button class="btn primary" id="esame-verifica-btn" onclick="rispostaEsameArea()">Verifica</button></div>`;
   }
 }
 
+// Stato selezione Modalità Esame.
+// La scelta è solo evidenziata finché non si preme Verifica: nessun punteggio
+// viene registrato prima della conferma, e _esameRisposto blocca doppi conteggi.
 let _esameSMSel = new Set();
+let _esameVFSel = null;
+let _esameBaccaSel = null;
+let _esameAreaSel = null;
+let _esameAreaOpts = [];
+let _esameRisposto = false;
 
 function togEsameSM(i) {
+  if (_esameRisposto) return;
   const el = document.getElementById('esm-'+i);
   const chk = document.getElementById('esm-check-'+i);
   if (_esameSMSel.has(i)) { _esameSMSel.delete(i); el.classList.remove('selected'); chk.textContent=''; }
   else { _esameSMSel.add(i); el.classList.add('selected'); chk.textContent='✓'; }
 }
 
-function rispostaEsameVF(scelta) {
+// ── Vero / Falso ──
+function selEsameVF(scelta) {
+  if (_esameRisposto) return;
+  _esameVFSel = scelta;
+  document.getElementById('evf-V').classList.toggle('selected', scelta === true);
+  document.getElementById('evf-F').classList.toggle('selected', scelta === false);
+}
+
+function rispostaEsameVF() {
+  if (_esameRisposto || _esameVFSel === null) return;
+  _esameRisposto = true;
+  const scelta = _esameVFSel;
   const q = esameQueue[esameIndex];
   const ok = scelta === q.ok;
   const fb = document.getElementById('esame-feedback');
-  document.getElementById('evf-V').disabled = true;
-  document.getElementById('evf-F').disabled = true;
+  const elV = document.getElementById('evf-V'), elF = document.getElementById('evf-F');
+  elV.disabled = true; elF.disabled = true;
+  elV.classList.remove('selected'); elF.classList.remove('selected');
   document.getElementById(scelta ? 'evf-V' : 'evf-F').classList.add(ok ? 'correct' : 'wrong');
   if (!ok) document.getElementById(q.ok ? 'evf-V' : 'evf-F').classList.add('correct');
   q._rispostaCorretta = q.ok ? 'Vero' : 'Falso';
@@ -1423,7 +1459,10 @@ function rispostaEsameVF(scelta) {
   registraRispostaEsame(ok, q, fb);
 }
 
+// ── Scelta multipla ──
 function rispostaEsameSM() {
+  if (_esameRisposto || _esameSMSel.size === 0) return;
+  _esameRisposto = true;
   const q = esameQueue[esameIndex];
   const opts = q._optsShuffled || q.ops;
   let ok = true;
@@ -1436,39 +1475,32 @@ function rispostaEsameSM() {
     else if (o.ok && !sel) { el.classList.add('missed'); chk.textContent='✓'; ok=false; corrette.push(o.t); }
     else if (!o.ok && sel) { el.classList.remove('selected'); el.classList.add('wrong'); chk.textContent='✗'; ok=false; }
   });
-  _esameSMSel = new Set();
   q._rispostaCorretta = corrette.join(' / ');
   q._spiegazione = null;
   const fb = document.getElementById('esame-feedback');
   registraRispostaEsame(ok, q, fb);
 }
 
-function rispostaEsameArea(elClicked, scelta, corretta, sottozona, paese) {
-  const ok = scelta === corretta;
-  const fb = document.getElementById('esame-feedback');
-  document.querySelectorAll('#esame-panel .option-item').forEach(el => {
-    el.style.pointerEvents = 'none';
-    const txt = el.querySelector('span')?.textContent?.trim() || '';
-    if (txt === corretta) el.classList.add('correct');
-    else if (txt === scelta && !ok) el.classList.add('wrong');
-  });
-  saveRispostaGeo('area', paese, sottozona, ok);
-  const q = {
-    d: sottozona,
-    _src: 'geo',
-    _rispostaCorretta: 'Regione: ' + corretta,
-    _spiegazione: sottozona + ' si trova nella regione ' + corretta + ' (' + (paese==='italia'?'Italia':'Francia') + ')'
-  };
-  registraRispostaEsame(ok, q, fb);
+// ── Geografica: colore bacca ──
+function selEsameBacca(scelta) {
+  if (_esameRisposto) return;
+  _esameBaccaSel = scelta;
+  document.getElementById('ebacca-B').classList.toggle('selected', scelta === 'B');
+  document.getElementById('ebacca-N').classList.toggle('selected', scelta === 'N');
 }
 
-function rispostaEsameGeo(scelta, corretta, entita, paese, tipo) {
+function rispostaEsameGeo() {
+  if (_esameRisposto || _esameBaccaSel === null) return;
+  _esameRisposto = true;
+  const scelta = _esameBaccaSel;
+  const q = esameQueue[esameIndex];
+  const corretta = q._baccaCorretta;
   const ok = scelta === corretta;
   const fb = document.getElementById('esame-feedback');
   const btnB = document.getElementById('ebacca-B');
   const btnN = document.getElementById('ebacca-N');
-  if (btnB) btnB.disabled = true;
-  if (btnN) btnN.disabled = true;
+  if (btnB) { btnB.disabled = true; btnB.classList.remove('selected'); }
+  if (btnN) { btnN.disabled = true; btnN.classList.remove('selected'); }
   if (corretta === 'B') {
     if (btnB) btnB.classList.add('correct');
     if (!ok && btnN) btnN.classList.add('wrong');
@@ -1476,15 +1508,51 @@ function rispostaEsameGeo(scelta, corretta, entita, paese, tipo) {
     if (btnN) btnN.classList.add('correct');
     if (!ok && btnB) btnB.classList.add('wrong');
   }
-  saveRispostaGeo(tipo, paese, entita, ok);
+  saveRispostaGeo(q._tipo, q._paese, q._entita, ok);
   const baccaLabel = corretta === 'B' ? 'Bacca Bianca' : 'Bacca Nera';
-  const q = {
-    d: entita,
+  const qLog = {
+    d: q._entita,
     _src: 'geo',
     _rispostaCorretta: baccaLabel,
-    _spiegazione: entita + ' è un vitigno a ' + baccaLabel.toLowerCase()
+    _spiegazione: q._entita + ' è un vitigno a ' + baccaLabel.toLowerCase()
   };
-  registraRispostaEsame(ok, q, fb);
+  registraRispostaEsame(ok, qLog, fb);
+}
+
+// ── Geografica: regione di una DOCG / areale ──
+function selEsameArea(idx) {
+  if (_esameRisposto) return;
+  _esameAreaSel = idx;
+  document.querySelectorAll('#esame-panel .option-item').forEach((el,i) => {
+    el.classList.toggle('selected', i === idx);
+  });
+}
+
+function rispostaEsameArea() {
+  if (_esameRisposto || _esameAreaSel === null) return;
+  _esameRisposto = true;
+  const q = esameQueue[esameIndex];
+  const scelta = _esameAreaOpts[_esameAreaSel];
+  const corretta = q._areaCorretta;
+  const sottozona = q._areaSottozona;
+  const paese = q._paese;
+  const ok = scelta === corretta;
+  const fb = document.getElementById('esame-feedback');
+  document.querySelectorAll('#esame-panel .option-item').forEach(el => {
+    el.style.pointerEvents = 'none';
+    el.classList.remove('selected');
+    const txt = el.querySelector('span')?.textContent?.trim() || '';
+    if (txt === corretta) el.classList.add('correct');
+    else if (txt === scelta && !ok) el.classList.add('wrong');
+  });
+  saveRispostaGeo('area', paese, sottozona, ok);
+  const qLog = {
+    d: sottozona,
+    _src: 'geo',
+    _rispostaCorretta: 'Regione: ' + corretta,
+    _spiegazione: sottozona + ' si trova nella regione ' + corretta + ' (' + (paese==='italia'?'Italia':'Francia') + ')'
+  };
+  registraRispostaEsame(ok, qLog, fb);
 }
 
 
@@ -1517,29 +1585,21 @@ function registraRispostaEsame(ok, q, fb) {
   document.getElementById('esame-score').textContent = esameOk + ' / ' + (esameOk+esameKo);
   if (q._src === 'teorica' && q.id) saveRisposta(q.id, ok);
 
-  if (ok) {
-    // Risposta corretta: avanza automaticamente dopo 1.2 secondi
-    setTimeout(() => {
-      esameIndex++;
-      if (esameIndex >= esameQueue.length) { terminaEsame(false); return; }
-      _esameSMSel = new Set();
-      renderEsameDomanda();
-    }, 1200);
-  } else {
-    // Risposta errata: mostra pulsante "Successiva →"
-    const fb = document.getElementById('esame-feedback');
-    const btnNext = document.createElement('button');
-    btnNext.className = 'btn primary';
-    btnNext.style.marginTop = '1rem';
-    btnNext.textContent = 'Successiva →';
-    btnNext.onclick = () => {
-      esameIndex++;
-      if (esameIndex >= esameQueue.length) { terminaEsame(false); return; }
-      _esameSMSel = new Set();
-      renderEsameDomanda();
-    };
-    fb.parentNode.appendChild(btnNext);
-  }
+  // Nascondi il pulsante Verifica (la risposta è ormai confermata)
+  const vb = document.getElementById('esame-verifica-btn');
+  if (vb) vb.style.display = 'none';
+
+  // Avanzamento sempre manuale: mostra "Successiva →" sia su corretta che su errata
+  const btnNext = document.createElement('button');
+  btnNext.className = 'btn primary';
+  btnNext.style.marginTop = '1rem';
+  btnNext.textContent = 'Successiva →';
+  btnNext.onclick = () => {
+    esameIndex++;
+    if (esameIndex >= esameQueue.length) { terminaEsame(false); return; }
+    renderEsameDomanda();
+  };
+  fb.parentNode.appendChild(btnNext);
 }
 
 function terminaEsame(manual) {
