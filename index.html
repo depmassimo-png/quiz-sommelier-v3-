@@ -3,28 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz Sommelier</title>
+<title>Quiz Sommelier · Calice e Sapere</title>
+<meta name="theme-color" content="#f4ede2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a0f12" media="(prefers-color-scheme: dark)">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  /* Palette Calice e Sapere (v2.78) — i nomi delle variabili restano quelli storici
+     perché sono usati negli stili inline e nel JS: "blue" = accento (bordeaux/oro). */
   :root {
-    --bg-primary: #ffffff; --bg-secondary: #f5f4f0; --bg-tertiary: #eeece7;
-    --text-primary: #1a1a18; --text-secondary: #5f5e5a; --text-tertiary: #888780;
-    --border-light: rgba(30,28,24,0.12); --border-mid: rgba(30,28,24,0.22);
+    --nero: #1a0f12; --vinaccia: #2a141b; --bordeaux: #7a1f35; --oro: #c9a24a; --avorio: #f4ede2;
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --bg-primary: #fbf7f0; --bg-secondary: #efe6d6; --bg-tertiary: #f4ede2;
+    --text-primary: #2b2124; --text-secondary: #5c4a4f; --text-tertiary: #8a787d;
+    --border-light: rgba(122,31,53,0.14); --border-mid: rgba(122,31,53,0.28);
     --radius-md: 8px; --radius-lg: 12px;
-    --blue-bg: #E6F1FB; --blue-text: #0C447C; --blue-border: #378ADD;
-    --green-bg: #EAF3DE; --green-text: #27500A; --green-border: #3B6D11;
-    --yellow-bg: #FEF9EC; --yellow-text: #7A5C00; --yellow-border: #E6B800;
-    --red-bg: #FCEBEB; --red-text: #791F1F; --red-border: #A32D2D;
+    --accent: #7a1f35; --accent-strong: #5e1628; --on-accent: #fbf7f0; --linea: rgba(122,31,53,0.22);
+    --blue-bg: #f6e6ea; --blue-text: #7a1f35; --blue-border: #7a1f35;
+    --green-bg: #edf0dc; --green-text: #3a4712; --green-border: #5d6e1f;
+    --yellow-bg: #f8efd8; --yellow-text: #6b5012; --yellow-border: #c9a24a;
+    --red-bg: #fae3df; --red-text: #8e1f17; --red-border: #c0392b;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg-primary: #1e1d1b; --bg-secondary: #272522; --bg-tertiary: #302e2a;
-      --text-primary: #f0ede6; --text-secondary: #b4b2a9; --text-tertiary: #888780;
-      --border-light: rgba(240,237,230,0.1); --border-mid: rgba(240,237,230,0.2);
-      --blue-bg: #042C53; --blue-text: #B5D4F4; --blue-border: #378ADD;
-      --green-bg: #173404; --green-text: #C0DD97; --green-border: #3B6D11;
-      --yellow-bg: #3D3000; --yellow-text: #FFD84D; --yellow-border: #C99A00;
-      --red-bg: #501313; --red-text: #F7C1C1; --red-border: #A32D2D;
+      --bg-primary: #2a141b; --bg-secondary: #22111a; --bg-tertiary: #1a0f12;
+      --text-primary: #f4ede2; --text-secondary: #cdbfb4; --text-tertiary: #9a8a8f;
+      --border-light: rgba(201,162,74,0.18); --border-mid: rgba(201,162,74,0.36);
+      --accent: #c9a24a; --accent-strong: #ddb965; --on-accent: #1a0f12; --linea: rgba(201,162,74,0.28);
+      --blue-bg: #3a2a14; --blue-text: #ead293; --blue-border: #c9a24a;
+      --green-bg: #1f2a10; --green-text: #c7dc9c; --green-border: #7f9c37;
+      --yellow-bg: #3d2410; --yellow-text: #f3c38a; --yellow-border: #d0873a;
+      --red-bg: #4a1620; --red-text: #f6bfc6; --red-border: #cf4a5a;
     }
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg-tertiary); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 1.25rem 0.75rem 3rem; }
@@ -402,14 +411,113 @@ tr:last-child td { border-bottom:none; }
 .areale-card h5 { font-size: 12px; font-weight: 500; margin-bottom: 3px; }
 .areale-card p { font-size: 12px; color: var(--text-secondary); margin: 0; }
 </style>
+<style>
+/* ══ Tema Calice e Sapere (v2.78) ══════════════════════════════════════
+   Solo aspetto: nessuna classe usata dal JS è stata rinominata. */
+body { font-family: var(--font-body); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, .auth-card h2, .setup-card h2, .attesa-screen h2, .modal-header h3, .admin-header h2 {
+  font-family: var(--font-display); font-weight: 600; letter-spacing: 0; text-wrap: balance;
+}
+h1 { font-size: clamp(1.9rem, 5vw, 2.6rem); line-height: 1.1; }
+::selection { background: var(--accent); color: var(--on-accent); }
+a { color: var(--accent); }
+button:focus-visible, select:focus-visible, input:focus-visible, .option-item:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+input[type=range] { accent-color: var(--accent); }
+
+/* Marchio ed etichette "eyebrow" come sul sito */
+.cs-eyebrow, .sidebar-label, .section-title, .field label, th, .modal-section h4 {
+  color: var(--accent); font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+}
+.cs-eyebrow { font-size: 11px; }
+.cs-eyebrow a { color: inherit; text-decoration: none; }
+.cs-eyebrow a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.cs-brand { display: flex; flex-direction: column; gap: 2px; line-height: 1.1; }
+.cs-brand-name { font-family: var(--font-display); font-size: 22px; font-weight: 600; color: var(--text-primary); }
+.cs-brand-name .cs-ver { font-family: var(--font-body); font-size: 11px; font-weight: 400; color: var(--text-tertiary); margin-left: 6px; letter-spacing: 0; }
+.cs-glass { width: 22px; height: 22px; color: var(--accent); flex-shrink: 0; }
+.cs-brand-row { display: flex; align-items: center; gap: 10px; }
+.cs-footer { max-width: 900px; margin: 1rem auto 0; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: 12px; color: var(--text-tertiary); padding-top: .75rem; border-top: 1px solid var(--linea); }
+.cs-footer a { color: var(--text-secondary); text-decoration: none; }
+.cs-footer a:hover { color: var(--accent); }
+
+/* Barra in alto */
+.topbar { padding-bottom: .75rem; border-bottom: 1px solid var(--linea); margin-bottom: 1rem !important; }
+.topbar-badge { background: transparent; border-color: var(--border-mid); color: var(--text-secondary); }
+.topbar-badge.admin { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-border); }
+
+/* Pulsanti */
+.btn, .btn-sm, .btn-reset, .admin-tab { border-width: 1px; transition: background .15s, color .15s, border-color .15s; }
+.btn:hover, .btn-sm:hover, .btn-reset:hover, .admin-tab:hover { border-color: var(--accent); color: var(--accent); }
+.btn.primary, .btn-full { background: var(--bordeaux); color: var(--avorio); border: 1px solid var(--bordeaux); font-weight: 500; }
+.btn.primary:hover, .btn-full:hover { background: #8e2640; border-color: #8e2640; color: var(--avorio); }
+.btn-full { padding: 11px; letter-spacing: .02em; }
+.admin-tab.active, .country-btn.active { background: var(--bordeaux); color: var(--avorio); border-color: var(--bordeaux); }
+.country-btn { border-width: 1px; transition: border-color .15s, color .15s; }
+.country-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+.tab.active { background: var(--bg-secondary); color: var(--accent); font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent); }
+.btn-scheda { border-width: 1px; }
+.btn-scheda:hover { background: var(--accent); color: var(--on-accent); }
+
+/* Superfici: card con filetto in alto (come le .acard del sito) */
+.app, .auth-card, .setup-card, .attesa-screen, .admin-panel {
+  border: 1px solid var(--border-light); border-top: 3px solid var(--accent);
+}
+.progress-card { border-width: 1px; border-top: 3px solid var(--accent); }
+.esame-header, .modal-box, .areale-card { border-width: 1px; }
+.sidebar { border-right-width: 1px; }
+.option-item, .region-option, .bacca-btn, select, .field input { border-width: 1px; }
+.option-item:hover:not(.selected):not(.correct):not(.wrong):not(.missed),
+.region-option:hover:not(.selected):not(.correct):not(.wrong):not(.missed),
+.bacca-btn:hover:not(.selected):not(.correct):not(.wrong):not(.missed) { border-color: var(--accent); }
+.option-item { font-size: 14px; padding: 10px 13px; transition: border-color .15s; }
+.option-item.selected .option-check { color: var(--on-accent); }
+.question-label { font-size: 14px; }
+.question-label strong { font-family: var(--font-display); font-size: 1.12em; font-weight: 600; }
+.feedback { border-left: 3px solid currentColor; border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+.pill.ok { background: var(--green-border); } .pill.ko { background: var(--red-border); }
+.progress-bar { background: var(--accent); }
+.esame-progress-bar { background: var(--accent); }
+.timer-display { font-family: var(--font-display); }
+.modal-overlay { background: rgba(26,15,18,.6); backdrop-filter: blur(3px); }
+.modal-header { border-bottom: 1px solid var(--linea); }
+.termine-glossario { border-bottom-color: var(--accent); color: var(--accent); }
+.termine-glossario:hover { background: var(--blue-bg); }
+.modal-tag.docg { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-border); }
+
+/* Schermate di accesso */
+.auth-wrap { gap: 1.5rem; }
+.auth-head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 0; }
+.auth-head h1 { font-size: clamp(1.9rem, 7vw, 2.4rem); font-weight: 600; letter-spacing: 0; }
+.auth-head p { font-size: 14px; color: var(--text-secondary); margin: 0; }
+.auth-head .cs-glass { width: 34px; height: 34px; }
+.auth-card { padding: 2rem 2rem 1.75rem; }
+.auth-quote { text-align: center; }
+.auth-quote img { width: 80%; max-width: 320px; border-radius: var(--radius-lg); display: inline-block; border: 1px solid var(--linea); }
+.auth-quote p { font-family: var(--font-display); font-style: italic; font-size: 14px; color: var(--text-secondary); margin: .6rem 0 0; }
+.auth-back { text-align: center; font-size: 13px; }
+.auth-back a { color: var(--text-secondary); text-decoration: none; }
+.auth-back a:hover { color: var(--accent); }
+
+@media (min-width: 621px) { .sidebar-controls > div + div { margin-top: 1rem; } }
+@media (max-width: 600px) {
+  .topbar { padding: 12px 12px 10px; }
+  .cs-brand-name { font-size: 19px; }
+  .app { border-top-width: 3px; }
+  .cs-footer { padding: .75rem 12px 0; }
+}
+</style>
 </head>
 <body>
 
 <!-- AUTH SCREENS (hidden by default) -->
 <div id="screen-login" style="display:none; width:100%; padding-top:2rem;">
   <div class="auth-wrap">
-    <header style="text-align:center">
-      <h1>🍷 Quiz Sommelier</h1>
+    <header class="auth-head">
+      <svg class="cs-glass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10l-.6 5.2A4.4 4.4 0 0 1 12 12.2a4.4 4.4 0 0 1-4.4-4L7 3z"/><path d="M7.4 6.5h9.2"/><path d="M12 12.2V20"/><path d="M8.5 20.5h7"/></svg>
+      <div class="cs-eyebrow"><a href="https://caliceesapere.it" target="_blank" rel="noopener">Calice e Sapere</a> · Allenamento all'esame</div>
+      <h1>Quiz Sommelier</h1>
       <p>Accedi al tuo account</p>
     </header>
     <div class="auth-card">
@@ -420,19 +528,21 @@ tr:last-child td { border-bottom:none; }
       <button class="btn-full" onclick="doLogin()">Accedi</button>
       <div class="auth-link">Non hai un account? <a onclick="showScreen('register')">Registrati</a></div>
     </div>
-    <div style="text-align:center;margin-top:.5rem">
+    <div class="auth-quote">
       <img src="https://depmassimo-png.github.io/quiz-sommelier-v3-/immagineCorso.png"
-           alt="Anche il più smemorato, se insiste, può ricordare le cose!"
-           style="width:80%;max-width:320px;border-radius:var(--radius-lg);display:inline-block">
-      <p style="font-size:12px;color:var(--text-secondary);margin:.5rem 0 0;font-style:italic">La costanza affina la memoria come un grande vino! 🍷</p>
+           alt="Anche il più smemorato, se insiste, può ricordare le cose!">
+      <p>La costanza affina la memoria come un grande vino.</p>
     </div>
+    <div class="auth-back"><a href="https://caliceesapere.it" target="_blank" rel="noopener">← Torna a caliceesapere.it</a></div>
   </div>
 </div>
 
 <div id="screen-register" style="display:none; width:100%; padding-top:2rem;">
   <div class="auth-wrap">
-    <header style="text-align:center">
-      <h1>🍷 Quiz Sommelier</h1>
+    <header class="auth-head">
+      <svg class="cs-glass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10l-.6 5.2A4.4 4.4 0 0 1 12 12.2a4.4 4.4 0 0 1-4.4-4L7 3z"/><path d="M7.4 6.5h9.2"/><path d="M12 12.2V20"/><path d="M8.5 20.5h7"/></svg>
+      <div class="cs-eyebrow"><a href="https://caliceesapere.it" target="_blank" rel="noopener">Calice e Sapere</a> · Allenamento all'esame</div>
+      <h1>Quiz Sommelier</h1>
       <p>Crea il tuo account</p>
     </header>
     <div class="auth-card">
@@ -451,7 +561,7 @@ tr:last-child td { border-bottom:none; }
 
 <div id="screen-attesa" style="display:none; width:100%; padding-top:3rem;">
   <div class="attesa-screen">
-    <div style="font-size:40px;margin-bottom:1rem">⏳</div>
+    <div style="margin-bottom:1rem;color:var(--accent)"><svg class="cs-glass" style="width:40px;height:40px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10l-.6 5.2A4.4 4.4 0 0 1 12 12.2a4.4 4.4 0 0 1-4.4-4L7 3z"/><path d="M7.4 6.5h9.2"/><path d="M12 12.2V20"/><path d="M8.5 20.5h7"/></svg></div>
     <h2>Account in attesa di approvazione</h2>
     <p>La tua email è stata verificata. Il tuo account è in attesa di approvazione da parte del docente. Riceverai accesso a breve.</p>
     <button class="btn-sm" style="margin-top:1.5rem" onclick="doLogout()">Esci</button>
@@ -462,7 +572,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-app" style="display:none; width:100%;">
   <!-- Top bar -->
   <div class="topbar" style="max-width:900px; margin:0 auto .75rem;">
-    <span style="font-size:20px; font-weight:500;">🍷 Quiz Sommelier <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;margin-left:4px">v2.77</span></span>
+    <span class="cs-brand-row"><svg class="cs-glass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10l-.6 5.2A4.4 4.4 0 0 1 12 12.2a4.4 4.4 0 0 1-4.4-4L7 3z"/><path d="M7.4 6.5h9.2"/><path d="M12 12.2V20"/><path d="M8.5 20.5h7"/></svg><span class="cs-brand"><span class="cs-eyebrow"><a href="https://caliceesapere.it" target="_blank" rel="noopener">Calice e Sapere</a></span><span class="cs-brand-name">Quiz Sommelier<span class="cs-ver">v2.78</span></span></span></span>
     <div class="topbar-user">
       <span id="topbar-username" style="font-size:13px;"></span>
       <span id="topbar-badge" class="topbar-badge"></span>
@@ -508,8 +618,9 @@ tr:last-child td { border-bottom:none; }
       <div class="empty-state"><div class="empty-icon">⏳</div>Caricamento…</div>
     </div>
   </div>
-  <div style="max-width:900px; margin:.5rem auto 0; text-align:right;">
-    <span style="font-size:11px; color:var(--text-tertiary)">Quiz Sommelier v2.77</span>
+  <div class="cs-footer">
+    <a href="https://caliceesapere.it" target="_blank" rel="noopener">Calice e Sapere · cultura del vino, dalla vigna al calice</a>
+    <span>Quiz Sommelier v2.78</span>
   </div>
 </div>
 
@@ -517,7 +628,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-setup-esame" style="display:none; width:100%; padding-top:1rem;">
   <div style="max-width:900px; margin:0 auto;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
-      <h2 style="font-size:18px; font-weight:500;">⏱ Modalità Esame</h2>
+      <h2 style="font-size:18px; font-weight:500;">Modalità Esame</h2>
       <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
     </div>
     <div class="setup-card">
@@ -637,7 +748,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-competizioni" style="display:none; width:100%;">
   <div style="max-width:900px; margin:0 auto;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
-      <h2 style="font-size:18px;font-weight:500;">🏆 Competizioni</h2>
+      <h2 style="font-size:18px;font-weight:500;">Competizioni</h2>
       <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
     </div>
     <div id="competizioni-content">
@@ -650,7 +761,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-ripassa" style="display:none; width:100%;">
   <div style="max-width:900px; margin:0 auto;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:.5rem;">
-      <h2 style="font-size:18px; font-weight:500;">🔁 Ripassa gli errori</h2>
+      <h2 style="font-size:18px; font-weight:500;">Ripassa gli errori</h2>
       <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
         <button class="btn-sm" style="color:var(--red-text);border-color:var(--red-border)" onclick="azzeraStatistiche()">🗑 Azzera storico</button>
         <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
@@ -671,7 +782,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-progressi" style="display:none; width:100%;">
   <div class="progress-wrap" style="max-width:900px; margin:0 auto;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
-      <h2 style="font-size:18px; font-weight:500;">📊 I miei progressi</h2>
+      <h2 style="font-size:18px; font-weight:500;">I miei progressi</h2>
       <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
     </div>
     <div id="progressi-content">
@@ -686,7 +797,7 @@ tr:last-child td { border-bottom:none; }
 <div id="screen-admin" style="display:none; width:100%;">
   <div style="max-width:900px; margin:0 auto;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
-      <h2 style="font-size:18px; font-weight:500;">⚙️ Pannello Admin</h2>
+      <h2 style="font-size:18px; font-weight:500;">Pannello Admin</h2>
       <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
     </div>
     <div class="admin-panel">
@@ -1049,7 +1160,7 @@ async function mostraSchedaVitigno(nomeVitigno, paese) {
 
   if (s.classificazione) {
     const cl = s.classificazione;
-    html += `<div class="modal-section"><h4>📋 ${cl.titolo || 'Classificazione'}</h4>`;
+    html += `<div class="modal-section"><h4>${cl.titolo || 'Classificazione'}</h4>`;
     for (const v of (cl.voci || [])) {
       html += `<div class="areale-card">
         <h5><span style="font-family:monospace;font-size:11px;background:var(--blue-bg);color:var(--blue-text);padding:2px 6px;border-radius:4px;margin-right:6px">${v.codice}</span>${v.nome}</h5>
@@ -1095,7 +1206,7 @@ async function mostraSchedaRegione(nomeRegione, paese) {
       const sched = schede[nomeRegione.toLowerCase()];
       if (sched?.classificazione) {
         const cl = sched.classificazione;
-        html += `<div class="modal-section"><h4>📋 ${cl.titolo || 'Classificazione'}</h4>`;
+        html += `<div class="modal-section"><h4>${cl.titolo || 'Classificazione'}</h4>`;
         for (const v of (cl.voci || [])) {
           html += `<div class="areale-card">
             <h5><span style="font-family:monospace;font-size:11px;background:var(--blue-bg);color:var(--blue-text);padding:2px 6px;border-radius:4px;margin-right:6px">${v.codice}</span>${v.nome}</h5>
@@ -1151,7 +1262,7 @@ async function mostraSchedaRegione(nomeRegione, paese) {
 
   if (s.classificazione) {
     const cl = s.classificazione;
-    html += `<div class="modal-section"><h4>📋 ${cl.titolo || 'Classificazione'}</h4>`;
+    html += `<div class="modal-section"><h4>${cl.titolo || 'Classificazione'}</h4>`;
     for (const v of (cl.voci || [])) {
       html += `<div class="areale-card">
         <h5><span style="font-family:monospace;font-size:11px;background:var(--blue-bg);color:var(--blue-text);padding:2px 6px;border-radius:4px;margin-right:6px">${v.codice}</span>${v.nome}</h5>
@@ -1655,7 +1766,7 @@ function renderRiepilogoEsame(manual) {
 
   if (esameErrori.length > 0) {
     html += `<div style="background:var(--bg-primary); border-radius:var(--radius-lg); border:0.5px solid var(--border-light); padding:1.5rem; margin-top:1rem;">
-      <h3 style="font-size:14px; font-weight:500; margin-bottom:1rem;">❌ Domande sbagliate (${esameErrori.length})</h3>
+      <h3 style="font-size:14px; font-weight:500; margin-bottom:1rem;">Domande sbagliate (${esameErrori.length})</h3>
       <div style="display:flex; flex-direction:column; gap:10px;">`;
     for (const e of esameErrori) {
       const rispostaHtml = e._rispostaCorretta
@@ -1758,7 +1869,7 @@ function renderRipassaLista(el, domande, geo, tipo) {
   if (hasDom) {
     html += `<div style="margin-bottom:1.25rem;">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; flex-wrap:wrap; gap:.5rem;">
-        <h4 style="font-size:13px; font-weight:500;">📋 Domande teoriche (${domande.length})</h4>
+        <h4 style="font-size:13px; font-weight:500;">Domande teoriche (${domande.length})</h4>
         <button class="btn primary" style="padding:6px 12px; font-size:12px" onclick="avviaRipasso('${tipo}')">▶ Ripassa domande</button>
       </div>
       <div style="display:flex; flex-direction:column; gap:5px;">`;
@@ -1775,7 +1886,7 @@ function renderRipassaLista(el, domande, geo, tipo) {
   if (hasGeo) {
     html += `<div>
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; flex-wrap:wrap; gap:.5rem;">
-        <h4 style="font-size:13px; font-weight:500;">🗺 Quiz geografici (${geo.length})</h4>
+        <h4 style="font-size:13px; font-weight:500;">Quiz geografici (${geo.length})</h4>
         <button class="btn primary" style="padding:6px 12px; font-size:12px" onclick="avviaRipassoGeo('${tipo}')">▶ Ripassa geo</button>
       </div>
       <div style="display:flex; flex-direction:column; gap:5px;">`;
@@ -2016,7 +2127,7 @@ async function loadProgressi() {
 
   // Storico sessioni per data
   if (sessioni && sessioni.length) {
-    html += `<h3 style="font-size:14px;font-weight:500;margin-bottom:.75rem;">📅 Storico sessioni</h3>
+    html += `<h3 style="font-size:14px;font-weight:500;margin-bottom:.75rem;">Storico sessioni</h3>
     <div style="background:var(--bg-primary);border-radius:var(--radius-md);border:0.5px solid var(--border-light);overflow:hidden;margin-bottom:1.5rem;">
     <table style="width:100%;border-collapse:collapse;font-size:13px;">
     <thead><tr>
@@ -2041,7 +2152,7 @@ async function loadProgressi() {
 
   // Per categoria
   if (Object.keys(perCat).length) {
-    html += '<h3 style="font-size:14px;font-weight:500;margin-bottom:.75rem;">📋 Domande per categoria</h3><div class="progress-grid">';
+    html += '<h3 style="font-size:14px;font-weight:500;margin-bottom:.75rem;">Domande per categoria</h3><div class="progress-grid">';
     for (const [cat, d] of Object.entries(perCat).sort((a,b)=>(b[1].ok/b[1].tot)-(a[1].ok/a[1].tot))) {
       const p = Math.round(100*d.ok/d.tot);
       html += `<div class="progress-card"><h4>${cat}</h4>
@@ -2052,7 +2163,7 @@ async function loadProgressi() {
   }
 
   if (Object.keys(perGeo).length) {
-    html += '<h3 style="font-size:14px;font-weight:500;margin:.75rem 0;">🗺 Quiz geografici</h3><div class="progress-grid">';
+    html += '<h3 style="font-size:14px;font-weight:500;margin:.75rem 0;">Quiz geografici</h3><div class="progress-grid">';
     for (const [key, d] of Object.entries(perGeo)) {
       const p = Math.round(100*d.ok/d.tot);
       html += `<div class="progress-card"><h4>${key}</h4>
@@ -2218,7 +2329,7 @@ async function loadAdmin(tab) {
 
     let html = '';
     if (topDom.length) {
-      html += `<h4 style="font-size:13px;font-weight:500;margin-bottom:.75rem">📋 Domande teoriche più sbagliate</h4>
+      html += `<h4 style="font-size:13px;font-weight:500;margin-bottom:.75rem">Domande teoriche più sbagliate</h4>
       <table><thead><tr><th>Domanda</th><th>Categoria</th><th>Errori</th></tr></thead><tbody>`;
       for (const e of topDom) {
         html += `<tr>
@@ -2230,7 +2341,7 @@ async function loadAdmin(tab) {
       html += '</tbody></table>';
     }
     if (topGeo.length) {
-      html += `<h4 style="font-size:13px;font-weight:500;margin:1.25rem 0 .75rem">🗺 Quiz geografici più sbagliati</h4>
+      html += `<h4 style="font-size:13px;font-weight:500;margin:1.25rem 0 .75rem">Quiz geografici più sbagliati</h4>
       <table><thead><tr><th>Entità</th><th>Tipo</th><th>Paese</th><th>Errori</th></tr></thead><tbody>`;
       for (const e of topGeo) {
         html += `<tr>
@@ -3443,7 +3554,7 @@ async function showCompetizioni() {
   }
 
   if (attive.length) {
-    html += `<h3 style="font-size:14px;font-weight:500;margin-bottom:.75rem">🟢 Competizioni attive</h3>`;
+    html += `<h3 style="font-size:14px;font-weight:500;margin-bottom:.75rem">Competizioni attive</h3>`;
     for (const c of attive) {
       const scadenza = new Date(c.scadenza).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
       const partecipato = c.id in partMap;
@@ -3464,7 +3575,7 @@ async function showCompetizioni() {
   }
 
   if (chiuse.length) {
-    html += `<h3 style="font-size:14px;font-weight:500;margin:.75rem 0">📊 Competizioni concluse</h3>`;
+    html += `<h3 style="font-size:14px;font-weight:500;margin:.75rem 0">Competizioni concluse</h3>`;
     for (const c of chiuse) {
       const scadenza = new Date(c.scadenza).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'});
       html += `<div style="background:var(--bg-primary);border-radius:var(--radius-md);border:0.5px solid var(--border-light);padding:1rem 1.25rem;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;opacity:.8">
@@ -3504,7 +3615,7 @@ async function renderFormCreaCompetizione() {
   const el = document.getElementById('comp-form-wrap');
   if (!el) return;
   el.innerHTML = `
-    <h4 style="font-size:13px;font-weight:500;color:var(--blue-text);margin-bottom:1rem">⚙️ Crea nuova competizione</h4>
+    <h4 style="font-size:13px;font-weight:500;color:var(--blue-text);margin-bottom:1rem">Crea nuova competizione</h4>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
       <div class="field" style="grid-column:1/-1"><label>Nome</label><input type="text" id="new-comp-nome" placeholder="Es. Gara di Novembre"></div>
       <div class="field"><label>Domande totali</label><input type="number" id="new-comp-ndom" value="20" min="5" max="100"></div>
@@ -3877,7 +3988,7 @@ async function mostraClassifica(id, nome) {
   const profMap = Object.fromEntries((profiles||[]).map(p=>[p.id,p.username]));
 
   let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
-    <h2 style="font-size:18px;font-weight:500;">🏆 ${nome}</h2>
+    <h2 style="font-size:18px;font-weight:500;">${nome}</h2>
     <button class="btn-sm" onclick="showCompetizioni()">← Competizioni</button>
   </div>
   <div style="background:var(--bg-primary);border-radius:var(--radius-lg);border:0.5px solid var(--border-light);overflow:hidden;">
