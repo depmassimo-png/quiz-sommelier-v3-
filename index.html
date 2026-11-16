@@ -412,104 +412,248 @@ tr:last-child td { border-bottom:none; }
 .areale-card p { font-size: 12px; color: var(--text-secondary); margin: 0; }
 </style>
 <style>
-/* ══ Tema Calice e Sapere (v2.78) ══════════════════════════════════════
-   Solo aspetto: nessuna classe usata dal JS è stata rinominata. */
-body { font-family: var(--font-body); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+/* ══ Tema Calice e Sapere (v2.79) ══════════════════════════════════════
+   Solo aspetto: nessuna classe o id usati dal JS è stato rinominato. */
+body { font-family: var(--font-body); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+  padding: 0 0 0 !important; display: flex; flex-direction: column; align-items: stretch; min-height: 100vh; }
+body > div[id^="screen-"] { width: 100%; max-width: 960px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
+#screen-app, #screen-progressi, #screen-admin, #screen-ripassa, #screen-setup-esame, #screen-esame,
+#screen-riepilogo-esame, #screen-comp-quiz, #screen-classifica, #screen-competizioni { padding-top: 1.75rem !important; }
 h1, h2, h3, .auth-card h2, .setup-card h2, .attesa-screen h2, .modal-header h3, .admin-header h2 {
-  font-family: var(--font-display); font-weight: 600; letter-spacing: 0; text-wrap: balance;
-}
-h1 { font-size: clamp(1.9rem, 5vw, 2.6rem); line-height: 1.1; }
+  font-family: var(--font-display); font-weight: 600; letter-spacing: 0; text-wrap: balance; }
 ::selection { background: var(--accent); color: var(--on-accent); }
 a { color: var(--accent); }
-button:focus-visible, select:focus-visible, input:focus-visible, .option-item:focus-visible {
-  outline: 2px solid var(--accent); outline-offset: 2px;
-}
+button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 input[type=range] { accent-color: var(--accent); }
+.cs-i { width: 17px; height: 17px; flex-shrink: 0; vertical-align: -3px; }
 
-/* Marchio ed etichette "eyebrow" come sul sito */
+/* Etichette "eyebrow" come sul sito */
 .cs-eyebrow, .sidebar-label, .section-title, .field label, th, .modal-section h4 {
-  color: var(--accent); font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
-}
-.cs-eyebrow { font-size: 11px; }
+  color: var(--accent); font-weight: 600; letter-spacing: .15em; text-transform: uppercase; font-size: 11px; }
 .cs-eyebrow a { color: inherit; text-decoration: none; }
-.cs-eyebrow a:hover { text-decoration: underline; text-underline-offset: 3px; }
-.cs-brand { display: flex; flex-direction: column; gap: 2px; line-height: 1.1; }
-.cs-brand-name { font-family: var(--font-display); font-size: 22px; font-weight: 600; color: var(--text-primary); }
-.cs-brand-name .cs-ver { font-family: var(--font-body); font-size: 11px; font-weight: 400; color: var(--text-tertiary); margin-left: 6px; letter-spacing: 0; }
-.cs-glass { width: 22px; height: 22px; color: var(--accent); flex-shrink: 0; }
-.cs-brand-row { display: flex; align-items: center; gap: 10px; }
-.cs-footer { max-width: 900px; margin: 1rem auto 0; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: 12px; color: var(--text-tertiary); padding-top: .75rem; border-top: 1px solid var(--linea); }
-.cs-footer a { color: var(--text-secondary); text-decoration: none; }
-.cs-footer a:hover { color: var(--accent); }
 
-/* Barra in alto */
-.topbar { padding-bottom: .75rem; border-bottom: 1px solid var(--linea); margin-bottom: 1rem !important; }
-.topbar-badge { background: transparent; border-color: var(--border-mid); color: var(--text-secondary); }
-.topbar-badge.admin { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-border); }
+/* ── Fascia del marchio: sempre scura, come l'intestazione del sito ── */
+.cs-band { background: var(--nero); border-bottom: 1px solid rgba(201,162,74,.45); color: var(--avorio); position: sticky; top: 0; z-index: 50; }
+.cs-band-in { max-width: 960px; margin: 0 auto; padding: 0 20px; height: 58px; display: flex; align-items: center; gap: 12px; }
+.cs-band a { text-decoration: none; }
+.cs-band-brand { display: flex; align-items: center; gap: 10px; color: var(--avorio) !important; font-family: var(--font-display); font-size: 1.28rem; font-weight: 600; white-space: nowrap; }
+.cs-band-brand:hover span { color: var(--oro); }
+.cs-band-glass { width: 24px; height: 24px; color: var(--oro); flex-shrink: 0; }
+.cs-band-sep { color: #6e5a60; font-size: 1.2rem; }
+.cs-band-app { color: var(--oro); font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+.cs-band-ver { color: #8f7f84; font-weight: 400; letter-spacing: .04em; margin-left: 4px; text-transform: none; }
+.cs-band-nav { margin-left: auto; display: flex; align-items: center; gap: 22px; font-size: 13.5px; }
+.cs-band-nav a { color: #cdbfb4 !important; white-space: nowrap; }
+.cs-band-nav a:hover { color: var(--avorio) !important; }
+.cs-band-nav .cs-band-site { display: inline-flex; align-items: center; gap: 6px; color: var(--oro) !important; border: 1px solid rgba(201,162,74,.55); border-radius: 999px; padding: 6px 14px; }
+.cs-band-nav .cs-band-site:hover { background: var(--oro); color: var(--nero) !important; }
+.cs-band-nav .cs-band-site .cs-i { width: 14px; height: 14px; vertical-align: 0; }
 
-/* Pulsanti */
+/* ── Intestazione della schermata quiz ── */
+.cs-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.1rem; }
+.cs-hero h1 { font-size: clamp(1.9rem, 4.2vw, 2.7rem); line-height: 1.05; margin-top: 4px; }
+.cs-user { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-secondary); }
+.topbar-badge { background: transparent; border: 1px solid var(--border-mid); color: var(--text-secondary); font-size: 11px; letter-spacing: .04em; padding: 2px 9px; border-radius: 999px; }
+.topbar-badge.admin { background: transparent; color: var(--accent); border-color: var(--accent); }
+
+/* ── Navigazione a schede sottolineate ── */
+.cs-nav { display: flex !important; align-items: flex-end; justify-content: space-between; gap: 12px 20px !important; flex-wrap: wrap;
+  max-width: none !important; width: 100%; margin: 0 0 1.4rem !important; padding: 0 !important; border-bottom: 1px solid var(--linea); }
+.cs-nav-main, .cs-nav-side { display: flex; align-items: flex-end; gap: 4px 22px; flex-wrap: wrap; }
+.cs-nav-side { gap: 4px 6px; }
+.cs-nav .country-btn { flex: none !important; min-width: 0 !important; background: transparent !important; border: none !important; border-radius: 0 !important;
+  padding: 10px 0 11px !important; margin-bottom: -1px; color: var(--text-secondary) !important; font-size: 15px !important; font-weight: 500;
+  border-bottom: 2px solid transparent !important; gap: 8px; display: inline-flex; align-items: center; box-shadow: none; }
+.cs-nav .country-btn:hover { color: var(--text-primary) !important; }
+.cs-nav .country-btn.active { color: var(--accent) !important; border-bottom-color: var(--accent) !important; font-weight: 600; }
+.cs-nav .country-btn .cs-i { opacity: .85; }
+.cs-flag { width: 15px; height: 11px; border-radius: 2px; flex-shrink: 0; box-shadow: 0 0 0 1px rgba(0,0,0,.12); }
+.cs-flag-it { background: linear-gradient(90deg, #009246 0 33.3%, #f4f1ea 33.3% 66.6%, #ce2b37 66.6%); }
+.cs-flag-fr { background: linear-gradient(90deg, #0055a4 0 33.3%, #f4f1ea 33.3% 66.6%, #ef4135 66.6%); }
+.cs-nav .btn-sm { display: inline-flex; align-items: center; gap: 6px; border: none !important; background: transparent; color: var(--text-secondary);
+  font-size: 13.5px !important; padding: 10px 8px 11px !important; border-radius: 0; }
+.cs-nav .btn-sm:hover { color: var(--accent); }
+.cs-count { display: inline-block; min-width: 18px; text-align: center; background: var(--bordeaux); color: var(--avorio); border-radius: 999px; padding: 1px 6px; font-size: 10.5px; font-weight: 600; line-height: 1.5; }
+
+/* ── Pulsanti ── */
 .btn, .btn-sm, .btn-reset, .admin-tab { border-width: 1px; transition: background .15s, color .15s, border-color .15s; }
 .btn:hover, .btn-sm:hover, .btn-reset:hover, .admin-tab:hover { border-color: var(--accent); color: var(--accent); }
+.btn { border-radius: 999px; padding: 9px 20px; font-size: 14px; }
 .btn.primary, .btn-full { background: var(--bordeaux); color: var(--avorio); border: 1px solid var(--bordeaux); font-weight: 500; }
 .btn.primary:hover, .btn-full:hover { background: #8e2640; border-color: #8e2640; color: var(--avorio); }
-.btn-full { padding: 11px; letter-spacing: .02em; }
-.admin-tab.active, .country-btn.active { background: var(--bordeaux); color: var(--avorio); border-color: var(--bordeaux); }
-.country-btn { border-width: 1px; transition: border-color .15s, color .15s; }
-.country-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
-.tab.active { background: var(--bg-secondary); color: var(--accent); font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent); }
-.btn-scheda { border-width: 1px; }
+.btn-full { padding: 12px; letter-spacing: .02em; border-radius: 999px; }
+.btn-sm { border-radius: 999px; padding: 6px 13px; }
+.admin-tab { border-radius: 999px; }
+.admin-tab.active { background: var(--bordeaux); color: var(--avorio); border-color: var(--bordeaux); }
+.btn-scheda { align-self: flex-start; border: 1px solid var(--accent); background: transparent; color: var(--accent); border-radius: 999px; padding: 6px 14px; }
 .btn-scheda:hover { background: var(--accent); color: var(--on-accent); }
 
-/* Superfici: card con filetto in alto (come le .acard del sito) */
-.app, .auth-card, .setup-card, .attesa-screen, .admin-panel {
-  border: 1px solid var(--border-light); border-top: 3px solid var(--accent);
-}
-.progress-card { border-width: 1px; border-top: 3px solid var(--accent); }
-.esame-header, .modal-box, .areale-card { border-width: 1px; }
-.sidebar { border-right-width: 1px; }
-.option-item, .region-option, .bacca-btn, select, .field input { border-width: 1px; }
-.option-item:hover:not(.selected):not(.correct):not(.wrong):not(.missed),
+/* ── Superficie del quiz ── */
+.app { max-width: none !important; margin: 0 !important; grid-template-columns: 230px 1fr; background: var(--bg-primary); border: 1px solid var(--border-light); border-radius: 14px; min-height: 520px; }
+.sidebar { background: transparent; border-right: 1px solid var(--border-light); padding: 1.5rem 1.4rem; gap: 1.4rem; }
+.sidebar-controls { display: flex; flex-direction: column; gap: 1.4rem; }
+.sidebar-label { margin-bottom: 8px; }
+.sidebar-controls > div:has(> .tab-group > span:only-child) { display: none; }
+.tab-group { background: transparent; border: none; padding: 0; gap: 16px; flex-wrap: wrap; }
+.tab { flex: none; padding: 2px 0 4px; min-height: 0; border-radius: 0; font-size: 14px; color: var(--text-secondary); border-bottom: 1px solid transparent; }
+.tab:hover { color: var(--text-primary); }
+.tab.active { background: transparent; color: var(--accent); font-weight: 600; border-bottom-color: var(--accent); box-shadow: none; }
+.sidebar select, #areale-select { background: transparent; border: none; border-bottom: 1px solid var(--border-mid); border-radius: 0; padding: 6px 2px; font-size: 15px; min-height: 0; }
+.sidebar select:focus { border-bottom-color: var(--accent); }
+.score-area { border-top: 1px solid var(--border-light); padding-top: 1.1rem; }
+.score-bar { flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
+#score-text { font-family: var(--font-display); font-size: 28px; font-weight: 600; color: var(--text-primary); line-height: 1; }
+.pill { width: 7px; height: 7px; }
+.pill.ok { background: var(--green-border); } .pill.ko { background: var(--red-border); }
+.btn-reset { border: none; background: transparent; padding: 0; width: auto; color: var(--text-tertiary); font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border-mid); }
+.btn-reset:hover { color: var(--accent); }
+.main { padding: 1.8rem 2rem; gap: 1.2rem; background: transparent; }
+
+/* Domanda e risposte: elenco a filetti */
+.question-label { font-size: 15px; color: var(--text-secondary); line-height: 1.55; }
+.question-label strong { font-family: var(--font-display); font-size: 1.35em; font-weight: 600; color: var(--text-primary); display: inline-block; line-height: 1.25; }
+.options-grid, .section-block .options-grid { gap: 0; border-top: 1px solid var(--border-light); }
+.option-item { border: none; border-bottom: 1px solid var(--border-light); border-radius: 0; background: transparent; padding: 12px 10px; font-size: 15px; min-height: 48px; transition: background .12s; }
+.option-item:hover:not(.selected):not(.correct):not(.wrong):not(.missed) { background: var(--bg-secondary); }
+.option-item.selected, .option-item.correct, .option-item.wrong, .option-item.missed { box-shadow: inset 3px 0 0 currentColor; }
+.option-check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border-mid); }
+.option-item.selected .option-check { color: var(--on-accent); }
+.region-option, .bacca-btn { border: 1px solid var(--border-light); border-radius: 10px; background: transparent; font-size: 14px; }
 .region-option:hover:not(.selected):not(.correct):not(.wrong):not(.missed),
 .bacca-btn:hover:not(.selected):not(.correct):not(.wrong):not(.missed) { border-color: var(--accent); }
-.option-item { font-size: 14px; padding: 10px 13px; transition: border-color .15s; }
-.option-item.selected .option-check { color: var(--on-accent); }
-.question-label { font-size: 14px; }
-.question-label strong { font-family: var(--font-display); font-size: 1.12em; font-weight: 600; }
-.feedback { border-left: 3px solid currentColor; border-radius: 0 var(--radius-md) var(--radius-md) 0; }
-.pill.ok { background: var(--green-border); } .pill.ko { background: var(--red-border); }
-.progress-bar { background: var(--accent); }
-.esame-progress-bar { background: var(--accent); }
+.feedback { border-radius: 0; border-left: 3px solid currentColor; font-size: 14px; padding: 10px 14px; }
+.actions { flex-wrap: wrap; }
+
+/* Link al sito dopo ogni risposta */
+.cs-ripassa { display: flex; align-items: center; gap: 10px; margin-top: .25rem; padding: 12px 14px; border: 1px solid var(--linea); border-radius: 12px;
+  background: var(--bg-secondary); color: var(--text-primary); text-decoration: none; font-size: 14px; transition: border-color .15s; }
+.cs-ripassa .cs-i { color: var(--accent); width: 20px; height: 20px; }
+.cs-ripassa em { font-family: var(--font-display); font-style: italic; color: var(--accent); font-size: 1.05em; }
+.cs-ripassa > span:last-child { margin-left: auto; color: var(--accent); }
+.cs-ripassa:hover { border-color: var(--accent); }
+
+/* Stati vuoti: calice al posto delle emoji */
+.empty-state { color: var(--text-secondary); font-size: 15px; gap: 12px; text-align: center; }
+.empty-icon { font-size: 0 !important; width: 46px; height: 46px; background: var(--accent); opacity: .85;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 3h10l-.6 5.2A4.4 4.4 0 0 1 12 12.2a4.4 4.4 0 0 1-4.4-4L7 3z'/%3E%3Cpath d='M7.4 6.5h9.2'/%3E%3Cpath d='M12 12.2V20'/%3E%3Cpath d='M8.5 20.5h7'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 3h10l-.6 5.2A4.4 4.4 0 0 1 12 12.2a4.4 4.4 0 0 1-4.4-4L7 3z'/%3E%3Cpath d='M7.4 6.5h9.2'/%3E%3Cpath d='M12 12.2V20'/%3E%3Cpath d='M8.5 20.5h7'/%3E%3C/svg%3E") center / contain no-repeat; }
+.main > .empty-state { font-family: var(--font-display); font-size: 18px; font-style: italic; }
+
+/* Altre schermate */
+.cs-page-title { font-size: clamp(1.6rem, 3.4vw, 2.1rem) !important; font-weight: 600 !important; }
+.auth-card, .setup-card, .attesa-screen, .admin-panel { border: 1px solid var(--border-light); border-top: 3px solid var(--accent); }
+.progress-card, .esame-header, .modal-box, .areale-card { border-width: 1px; }
+.progress-card { border-radius: 12px; }
+.progress-bar, .esame-progress-bar { background: var(--accent); }
 .timer-display { font-family: var(--font-display); }
+.option-item, select, .field input { border-width: 1px; }
 .modal-overlay { background: rgba(26,15,18,.6); backdrop-filter: blur(3px); }
+.modal-box { border-radius: 14px; }
 .modal-header { border-bottom: 1px solid var(--linea); }
 .termine-glossario { border-bottom-color: var(--accent); color: var(--accent); }
 .termine-glossario:hover { background: var(--blue-bg); }
-.modal-tag.docg { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-border); }
 
-/* Schermate di accesso */
-.auth-wrap { gap: 1.5rem; }
+/* Accesso */
+.auth-wrap { gap: 1.5rem; padding-bottom: 2rem; }
 .auth-head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 0; }
-.auth-head h1 { font-size: clamp(1.9rem, 7vw, 2.4rem); font-weight: 600; letter-spacing: 0; }
+.auth-head h1 { font-size: clamp(1.9rem, 7vw, 2.5rem); font-weight: 600; letter-spacing: 0; }
 .auth-head p { font-size: 14px; color: var(--text-secondary); margin: 0; }
-.auth-head .cs-glass { width: 34px; height: 34px; }
-.auth-card { padding: 2rem 2rem 1.75rem; }
+.auth-head .cs-glass { width: 34px; height: 34px; color: var(--accent); }
+.auth-card { padding: 2rem 2rem 1.75rem; border-radius: 14px; }
+.field input { border-radius: 10px; padding: 10px 12px; }
 .auth-quote { text-align: center; }
-.auth-quote img { width: 80%; max-width: 320px; border-radius: var(--radius-lg); display: inline-block; border: 1px solid var(--linea); }
-.auth-quote p { font-family: var(--font-display); font-style: italic; font-size: 14px; color: var(--text-secondary); margin: .6rem 0 0; }
+.auth-quote img { width: 80%; max-width: 320px; border-radius: 12px; display: inline-block; border: 1px solid var(--linea); }
+.auth-quote p { font-family: var(--font-display); font-style: italic; font-size: 15px; color: var(--text-secondary); margin: .6rem 0 0; }
 .auth-back { text-align: center; font-size: 13px; }
 .auth-back a { color: var(--text-secondary); text-decoration: none; }
 .auth-back a:hover { color: var(--accent); }
 
-@media (min-width: 621px) { .sidebar-controls > div + div { margin-top: 1rem; } }
-@media (max-width: 600px) {
-  .topbar { padding: 12px 12px 10px; }
-  .cs-brand-name { font-size: 19px; }
-  .app { border-top-width: 3px; }
-  .cs-footer { padding: .75rem 12px 0; }
+/* ── Piè di pagina: sempre scuro, come sul sito ── */
+.cs-foot { margin-top: auto; background: var(--nero); color: #cdbfb4; border-top: 1px solid rgba(201,162,74,.45); font-size: 14px; }
+body > .cs-foot { margin-top: 3.5rem; }
+.cs-foot-in { max-width: 960px; margin: 0 auto; padding: 2.2rem 20px 1.6rem; display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 2rem; }
+.cs-foot a { color: #cdbfb4; text-decoration: none; }
+.cs-foot a:hover { color: var(--oro); }
+.cs-foot-brand > a { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; color: var(--avorio); }
+.cs-foot-brand p { margin-top: .6rem; max-width: 40ch; line-height: 1.6; color: #a99a9e; font-size: 13.5px; }
+.cs-foot-nav { display: flex; flex-direction: column; gap: 7px; }
+.cs-foot-h { color: var(--oro); font-size: 11px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; margin-bottom: 4px; }
+.cs-foot-base { max-width: 960px; margin: 0 auto; padding: 1rem 20px 1.4rem; border-top: 1px solid rgba(201,162,74,.2); display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: 12px; color: #8f7f84; }
+
+/* ── Mobile ── */
+@media (max-width: 760px) {
+  .cs-band-nav a:not(.cs-band-site) { display: none; }
+  .cs-band-sep, .cs-band-app .cs-band-ver { display: none; }
+  .cs-band-app { display: none; }
+  .cs-band-nav .cs-band-site { padding: 5px 11px; font-size: 12.5px; }
+  .cs-foot-in { grid-template-columns: 1fr 1fr; }
+  .cs-foot-brand { grid-column: 1 / -1; }
+}
+@media (max-width: 620px) {
+  body > div[id^="screen-"] { padding-left: 12px !important; padding-right: 12px !important; }
+  #screen-app { padding-top: 1.1rem !important; }
+  .cs-band-in { padding: 0 14px; height: 52px; }
+  .cs-band-brand { font-size: 1.12rem; }
+  .cs-hero { margin-bottom: .6rem; align-items: center; }
+  .cs-hero h1 { font-size: 1.7rem; }
+  .cs-hero .cs-eyebrow { font-size: 10px; letter-spacing: .12em; }
+  .cs-nav { gap: 0 !important; margin-bottom: 1rem !important; }
+  .cs-nav-main { width: 100%; gap: 0 18px; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+  .cs-nav-main::-webkit-scrollbar { display: none; }
+  .cs-nav-main .country-btn { font-size: 14px !important; white-space: nowrap; }
+  .cs-nav-side { width: 100%; justify-content: space-between; border-top: 1px solid var(--border-light); }
+  .cs-nav .btn-sm { font-size: 12.5px !important; padding: 9px 4px !important; }
+  .cs-hide-sm { display: none; }
+  .cs-nav-main { gap: 0 14px !important; }
+  .cs-nav-main .country-btn { font-size: 13.5px !important; gap: 6px; }
+  .cs-nav-main .country-btn .cs-i { display: none; }
+  .sidebar-controls { grid-template-columns: auto 1fr !important; }
+  .tab-group { flex-wrap: nowrap; gap: 12px; }
+  .app { grid-template-columns: 1fr; padding: 0 !important; border-radius: 12px !important; }
+  .sidebar { border-right: none; border-bottom: 1px solid var(--border-light); border-radius: 0 !important; padding: 1rem 1rem !important; gap: 1rem; }
+  .sidebar-controls { display: grid !important; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .sidebar-controls > div:has(> .tab-group > span:only-child) + div { grid-column: 1 / -1; }
+  .score-area { flex-direction: row !important; align-items: center; justify-content: space-between; padding-top: .8rem; }
+  .score-area .sidebar-label { display: none; }
+  .score-bar { flex-direction: row; align-items: center; margin: 0; flex: 1; }
+  #score-text { font-size: 22px; }
+  .main { padding: 1.2rem 1rem !important; }
+  .question-label strong { font-size: 1.25em; }
+}
+@media (prefers-color-scheme: dark) {
+  .cs-band, .cs-foot { background: #120a0c; }
+  .cs-flag { box-shadow: 0 0 0 1px rgba(255,255,255,.15); }
 }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-calice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10l-.6 5.2A4.4 4.4 0 0 1 12 12.2a4.4 4.4 0 0 1-4.4-4L7 3z"/><path d="M7.4 6.5h9.2"/><path d="M12 12.2V20"/><path d="M8.5 20.5h7"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="2.4"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/><path d="M10 2.5h4"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 16.5V21"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.8 2.8 0 0 0 2.8 4M17 6h2.5a2.8 2.8 0 0 1-2.8 4"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 20h16"/><path d="M7 16v-4M12 16V8M17 16V5"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a7 7 0 0 1 12.3-4.6L19 9"/><path d="M19 4v5h-5"/><path d="M20 13a7 7 0 0 1-12.3 4.6L5 15"/><path d="M5 20v-5h5"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M9 8l-4 4 4 4"/><path d="M5 12h11"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5h5v5"/><path d="M19 5l-8 8"/><path d="M17 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h4"/></symbol>
+  </defs>
+</svg>
+<!-- FASCIA MARCHIO CALICE E SAPERE -->
+<header class="cs-band">
+  <div class="cs-band-in">
+    <a class="cs-band-brand" href="https://caliceesapere.it" target="_blank" rel="noopener" title="Vai a caliceesapere.it"><svg class="cs-band-glass" aria-hidden="true"><use href="#i-calice"/></svg><span>Calice e Sapere</span></a>
+    <span class="cs-band-sep">/</span>
+    <span class="cs-band-app">Quiz Sommelier <span class="cs-band-ver">v2.79</span></span>
+    <nav class="cs-band-nav" aria-label="Sezioni di Calice e Sapere">
+      <a href="https://caliceesapere.it/approfondimenti" target="_blank" rel="noopener">Approfondimenti</a>
+      <a href="https://caliceesapere.it/docg" target="_blank" rel="noopener">DOCG</a>
+      <a href="https://caliceesapere.it/domande" target="_blank" rel="noopener">Domande</a>
+      <a class="cs-band-site" href="https://caliceesapere.it" target="_blank" rel="noopener">Vai al sito <svg class="cs-i" aria-hidden="true"><use href="#i-ext"/></svg></a>
+    </nav>
+  </div>
+</header>
 
 <!-- AUTH SCREENS (hidden by default) -->
 <div id="screen-login" style="display:none; width:100%; padding-top:2rem;">
@@ -570,30 +714,37 @@ input[type=range] { accent-color: var(--accent); }
 
 <!-- MAIN APP (hidden until logged in) -->
 <div id="screen-app" style="display:none; width:100%;">
-  <!-- Top bar -->
-  <div class="topbar" style="max-width:900px; margin:0 auto .75rem;">
-    <span class="cs-brand-row"><svg class="cs-glass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10l-.6 5.2A4.4 4.4 0 0 1 12 12.2a4.4 4.4 0 0 1-4.4-4L7 3z"/><path d="M7.4 6.5h9.2"/><path d="M12 12.2V20"/><path d="M8.5 20.5h7"/></svg><span class="cs-brand"><span class="cs-eyebrow"><a href="https://caliceesapere.it" target="_blank" rel="noopener">Calice e Sapere</a></span><span class="cs-brand-name">Quiz Sommelier<span class="cs-ver">v2.78</span></span></span></span>
-    <div class="topbar-user">
-      <span id="topbar-username" style="font-size:13px;"></span>
+  <!-- Intestazione -->
+  <div class="cs-hero">
+    <div>
+      <div class="cs-eyebrow">Allenamento all'esame · metodo Assosommelier</div>
+      <h1>Mettiti alla prova</h1>
+    </div>
+    <div class="topbar-user cs-user">
+      <span id="topbar-username"></span>
       <span id="topbar-badge" class="topbar-badge"></span>
-      <button class="btn-sm" onclick="showProgressi()">📊 Progressi</button>
-      <button class="btn-sm" onclick="showRipassa()" id="btn-ripassa">🔁 Ripassa <span id="badge-errori" style="display:none;background:var(--red-text);color:white;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:2px"></span></button>
-      <button class="btn-sm" id="btn-admin" style="display:none" onclick="showAdmin()">⚙️ Admin</button>
-      <button class="btn-sm" onclick="doLogout()">Esci</button>
     </div>
   </div>
 
-  <!-- Country picker -->
-  <div class="country-picker" style="max-width:900px; margin:0 auto .75rem;">
-    <button class="country-btn active" id="btn-italia" onclick="setSection('italia')"><span class="flag">🇮🇹</span> Italia</button>
-    <button class="country-btn" id="btn-francia" onclick="setSection('francia')"><span class="flag">🇫🇷</span> Francia</button>
-    <button class="country-btn" id="btn-produzione" onclick="setSection('produzione')"><span class="flag">📋</span> Domande</button>
-    <button class="country-btn" id="btn-esame" onclick="showSetupEsame()"><span class="flag">⏱</span> Esame</button>
-    <button class="country-btn" id="btn-competizione" onclick="showCompetizioni()"><span class="flag">🏆</span> Gara <span id="badge-comp" style="display:none;background:var(--red-text);color:white;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:2px">!</span></button>
-  </div>
+  <!-- Navigazione -->
+  <nav class="country-picker cs-nav">
+    <div class="cs-nav-main">
+      <button class="country-btn active" id="btn-italia" onclick="setSection('italia')"><span class="cs-flag cs-flag-it" aria-hidden="true"></span>Italia</button>
+      <button class="country-btn" id="btn-francia" onclick="setSection('francia')"><span class="cs-flag cs-flag-fr" aria-hidden="true"></span>Francia</button>
+      <button class="country-btn" id="btn-produzione" onclick="setSection('produzione')"><svg class="cs-i" aria-hidden="true"><use href="#i-list"/></svg>Domande</button>
+      <button class="country-btn" id="btn-esame" onclick="showSetupEsame()"><svg class="cs-i" aria-hidden="true"><use href="#i-clock"/></svg>Esame</button>
+      <button class="country-btn" id="btn-competizione" onclick="showCompetizioni()"><svg class="cs-i" aria-hidden="true"><use href="#i-trophy"/></svg>Gara <span id="badge-comp" class="cs-count" style="display:none">!</span></button>
+    </div>
+    <div class="cs-nav-side">
+      <button class="btn-sm" onclick="showProgressi()"><svg class="cs-i" aria-hidden="true"><use href="#i-chart"/></svg>Progressi</button>
+      <button class="btn-sm" onclick="showRipassa()" id="btn-ripassa"><svg class="cs-i" aria-hidden="true"><use href="#i-repeat"/></svg>Ripassa <span id="badge-errori" class="cs-count" style="display:none"></span></button>
+      <button class="btn-sm" id="btn-admin" style="display:none" onclick="showAdmin()"><svg class="cs-i" aria-hidden="true"><use href="#i-sliders"/></svg>Admin</button>
+      <button class="btn-sm" onclick="doLogout()" title="Esci"><svg class="cs-i" aria-hidden="true"><use href="#i-logout"/></svg><span class="cs-hide-sm">Esci</span></button>
+    </div>
+  </nav>
 
   <!-- Quiz app -->
-  <div class="app" style="max-width:900px; margin:0 auto;">
+  <div class="app">
     <div class="sidebar">
       <div class="sidebar-controls">
         <div>
@@ -610,6 +761,7 @@ input[type=range] { accent-color: var(--accent); }
         <select id="areale-select" onchange="onArealeChange()"><option value="">— scegli areale —</option></select>
       </div>
       <div class="score-area">
+        <div class="sidebar-label">sessione</div>
         <div class="score-bar"><span id="score-text">0 / 0</span><div class="score-pills" id="score-pills"></div></div>
         <button class="btn-reset" onclick="resetScore()">azzera punteggio</button>
       </div>
@@ -618,17 +770,13 @@ input[type=range] { accent-color: var(--accent); }
       <div class="empty-state"><div class="empty-icon">⏳</div>Caricamento…</div>
     </div>
   </div>
-  <div class="cs-footer">
-    <a href="https://caliceesapere.it" target="_blank" rel="noopener">Calice e Sapere · cultura del vino, dalla vigna al calice</a>
-    <span>Quiz Sommelier v2.78</span>
-  </div>
 </div>
 
 <!-- SETUP ESAME -->
 <div id="screen-setup-esame" style="display:none; width:100%; padding-top:1rem;">
   <div style="max-width:900px; margin:0 auto;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
-      <h2 style="font-size:18px; font-weight:500;">Modalità Esame</h2>
+      <h2 class="cs-page-title">Modalità Esame</h2>
       <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
     </div>
     <div class="setup-card">
@@ -748,7 +896,7 @@ input[type=range] { accent-color: var(--accent); }
 <div id="screen-competizioni" style="display:none; width:100%;">
   <div style="max-width:900px; margin:0 auto;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
-      <h2 style="font-size:18px;font-weight:500;">Competizioni</h2>
+      <h2 class="cs-page-title">Competizioni</h2>
       <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
     </div>
     <div id="competizioni-content">
@@ -761,7 +909,7 @@ input[type=range] { accent-color: var(--accent); }
 <div id="screen-ripassa" style="display:none; width:100%;">
   <div style="max-width:900px; margin:0 auto;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:.5rem;">
-      <h2 style="font-size:18px; font-weight:500;">Ripassa gli errori</h2>
+      <h2 class="cs-page-title">Ripassa gli errori</h2>
       <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
         <button class="btn-sm" style="color:var(--red-text);border-color:var(--red-border)" onclick="azzeraStatistiche()">🗑 Azzera storico</button>
         <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
@@ -782,7 +930,7 @@ input[type=range] { accent-color: var(--accent); }
 <div id="screen-progressi" style="display:none; width:100%;">
   <div class="progress-wrap" style="max-width:900px; margin:0 auto;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
-      <h2 style="font-size:18px; font-weight:500;">I miei progressi</h2>
+      <h2 class="cs-page-title">I miei progressi</h2>
       <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
     </div>
     <div id="progressi-content">
@@ -797,7 +945,7 @@ input[type=range] { accent-color: var(--accent); }
 <div id="screen-admin" style="display:none; width:100%;">
   <div style="max-width:900px; margin:0 auto;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
-      <h2 style="font-size:18px; font-weight:500;">Pannello Admin</h2>
+      <h2 class="cs-page-title">Pannello Admin</h2>
       <button class="btn-sm" onclick="showApp()">← Torna al quiz</button>
     </div>
     <div class="admin-panel">
@@ -816,6 +964,32 @@ input[type=range] { accent-color: var(--accent); }
     </div>
   </div>
 </div>
+
+<!-- PIE' DI PAGINA CALICE E SAPERE -->
+<footer class="cs-foot">
+  <div class="cs-foot-in">
+    <div class="cs-foot-brand">
+      <a href="https://caliceesapere.it" target="_blank" rel="noopener"><svg class="cs-band-glass" aria-hidden="true"><use href="#i-calice"/></svg><span>Calice e Sapere</span></a>
+      <p>Cultura del vino, dalla vigna al calice. Il Quiz Sommelier è lo strumento di allenamento all'esame del sito.</p>
+    </div>
+    <nav class="cs-foot-nav" aria-label="Ripassa la teoria">
+      <span class="cs-foot-h">Ripassa la teoria</span>
+      <a href="https://caliceesapere.it/vigna" target="_blank" rel="noopener">La vigna</a>
+      <a href="https://caliceesapere.it/cantina" target="_blank" rel="noopener">La cantina</a>
+      <a href="https://caliceesapere.it/bollicine" target="_blank" rel="noopener">Bollicine</a>
+      <a href="https://caliceesapere.it/degustazione" target="_blank" rel="noopener">Degustazione</a>
+      <a href="https://caliceesapere.it/abbinamento" target="_blank" rel="noopener">Abbinamento</a>
+    </nav>
+    <nav class="cs-foot-nav" aria-label="Territori">
+      <span class="cs-foot-h">Territori</span>
+      <a href="https://caliceesapere.it/italia" target="_blank" rel="noopener">Italia</a>
+      <a href="https://caliceesapere.it/docg" target="_blank" rel="noopener">Catalogo DOCG</a>
+      <a href="https://caliceesapere.it/mondo" target="_blank" rel="noopener">Mondo</a>
+      <a href="https://caliceesapere.it/responsabile" target="_blank" rel="noopener">Bere responsabile</a>
+    </nav>
+  </div>
+  <div class="cs-foot-base"><span>© Calice e Sapere · strumento di studio indipendente</span><span>Quiz Sommelier v2.79</span></div>
+</footer>
 
 <script>
 const APP_VERSION = '2.75';
@@ -1306,7 +1480,7 @@ function aggiungiBtnScheda(tipo, nome) {
   const btn = document.createElement('button');
   btn.id = 'btn-scheda-inline';
   btn.className = 'btn-scheda';
-  btn.innerHTML = tipo === 'vitigno' ? '📖 Scheda vitigno' : '🗺 Scheda regione';
+  btn.innerHTML = tipo === 'vitigno' ? 'Scheda vitigno →' : 'Scheda regione →';
   btn.onclick = () => tipo === 'vitigno' ? mostraSchedaVitigno(nome, country) : mostraSchedaRegione(nome, country);
   fb.parentNode.insertBefore(btn, fb.nextSibling);
 }
@@ -3988,7 +4162,7 @@ async function mostraClassifica(id, nome) {
   const profMap = Object.fromEntries((profiles||[]).map(p=>[p.id,p.username]));
 
   let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
-    <h2 style="font-size:18px;font-weight:500;">${nome}</h2>
+    <h2 class="cs-page-title">${nome}</h2>
     <button class="btn-sm" onclick="showCompetizioni()">← Competizioni</button>
   </div>
   <div style="background:var(--bg-primary);border-radius:var(--radius-lg);border:0.5px solid var(--border-light);overflow:hidden;">
@@ -4085,6 +4259,70 @@ feedback = function(ok) {
 
 // ── INIT ────────────────────────────────────────
 checkSession();
+
+// ══════════════════════════════════════════════
+// LINK "RIPASSA SU CALICE E SAPERE" (v2.79)
+// Dopo ogni verifica nel quiz principale aggiunge un link alla sezione
+// del sito pertinente. Solo presentazione: non tocca punteggi né Supabase.
+// ══════════════════════════════════════════════
+const CS_URL = 'https://caliceesapere.it';
+const CS_REGIONI = {
+  'abruzzo':'Abruzzo','basilicata':'Basilicata','calabria':'Calabria','campania':'Campania',
+  'emilia-romagna':'Emilia-Romagna','friuli-venezia-giulia':'Friuli Venezia Giulia','lazio':'Lazio',
+  'liguria':'Liguria','lombardia':'Lombardia','marche':'Marche','molise':'Molise','piemonte':'Piemonte',
+  'puglia':'Puglia','sardegna':'Sardegna','sicilia':'Sicilia','toscana':'Toscana',
+  'trentino-alto-adige':'Trentino-Alto Adige','umbria':'Umbria','valle-d-aosta':"Valle d'Aosta",'veneto':'Veneto'
+};
+const CS_ARGOMENTI = [
+  [/spumant|bollicin|champenois|charmat|martinotti|metodo-classico/, '/bollicine', 'le bollicine'],
+  [/passit|speciali|liquoros|fortificat|muffat|tardiv|marsala|porto|sherry/, '/speciali', 'i vini speciali'],
+  [/vign|vite|viticolt|ampelograf|potatur|allevament|terren|fenolog|vitign/, '/vigna', 'la vigna'],
+  [/vinificaz|cantina|enolog|fermentaz|difett|affinament|chimic|mosto/, '/cantina', 'la cantina'],
+  [/degust|sensorial|analisi|servizio|temperatur|bicchier|olfatt|visiv|gustativ/, '/degustazione', 'la degustazione'],
+  [/abbinament|cibo|gastronom/, '/abbinamento', "l'abbinamento cibo-vino"],
+  [/legisl|normativ|denominaz|docg|etichett|piramide/, '/docg', 'le denominazioni'],
+  [/franci|mondo|ester|spagn|german|portog|austri/, '/mondo', 'i vini del mondo'],
+  [/responsab|alcol|salute/, '/responsabile', 'il consumo responsabile'],
+  [/itali|region/, '/italia', "l'Italia del vino"]
+];
+function csSlug(t) {
+  return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+function csRegione(nome) { return CS_REGIONI[csSlug(nome)] || null; }
+function csLinkPerDomanda() {
+  if (sezione === 'produzione') {
+    const c = csSlug(prodCategoria);
+    for (const [re, href, label] of CS_ARGOMENTI) if (re.test(c)) return { href, label: 'Ripassa ' + label };
+    return { href: '/domande', label: 'Allenati con altre domande' };
+  }
+  if (country === 'francia') return { href: '/mondo', label: 'Ripassa la Francia del vino' };
+  let reg = null;
+  if (mode === 'area') reg = csRegione(selected);
+  else if (mode === 'class' && allClass && allClass[selected]) reg = csRegione(allClass[selected][0]);
+  if (reg) return { href: '/docg?regione=' + encodeURIComponent(reg), label: 'Ripassa le DOCG di ' + reg };
+  return { href: '/italia', label: "Ripassa l'Italia del vino" };
+}
+function aggiungiLinkCalice() {
+  try {
+    const panel = document.getElementById('main-panel');
+    if (!panel || !document.getElementById('feedback')) return;
+    const prev = document.getElementById('cs-ripassa');
+    if (prev) prev.remove();
+    const l = csLinkPerDomanda();
+    const a = document.createElement('a');
+    a.id = 'cs-ripassa'; a.className = 'cs-ripassa';
+    a.href = CS_URL + l.href; a.target = '_blank'; a.rel = 'noopener';
+    a.innerHTML = '<svg class="cs-i" aria-hidden="true"><use href="#i-calice"/></svg><span>' +
+      l.label + ' su <em>Calice e Sapere</em></span><span aria-hidden="true">→</span>';
+    panel.appendChild(a);
+  } catch (e) { /* il link è un di più: mai bloccare il quiz */ }
+}
+const _feedbackPrimaDiCalice = feedback;
+feedback = function(ok) {
+  _feedbackPrimaDiCalice(ok);
+  aggiungiLinkCalice();
+};
 </script>
 </body>
 </html>
