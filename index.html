@@ -524,13 +524,25 @@ input[type=range] { accent-color: var(--accent); }
 .feedback { border-radius: 0; border-left: 3px solid currentColor; font-size: 14px; padding: 10px 14px; }
 .actions { flex-wrap: wrap; }
 
-/* Link al sito dopo ogni risposta */
-.cs-ripassa { display: flex; align-items: center; gap: 10px; margin-top: .25rem; padding: 12px 14px; border: 1px solid var(--linea); border-radius: 12px;
-  background: var(--bg-secondary); color: var(--text-primary); text-decoration: none; font-size: 14px; transition: border-color .15s; }
-.cs-ripassa .cs-i { color: var(--accent); width: 20px; height: 20px; }
-.cs-ripassa em { font-family: var(--font-display); font-style: italic; color: var(--accent); font-size: 1.05em; }
-.cs-ripassa > span:last-child { margin-left: auto; color: var(--accent); }
-.cs-ripassa:hover { border-color: var(--accent); }
+/* Rimandi a Calice e Sapere (v2.82) */
+.cs-appro { margin-top: .5rem; padding: 12px 14px 8px; border: 1px solid var(--linea); border-radius: 12px; background: var(--bg-secondary); }
+.cs-appro-h { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+.cs-appro-h .cs-i { color: var(--accent); width: 18px; height: 18px; }
+.cs-appro-h em { font-family: var(--font-display); font-style: italic; color: var(--accent); font-size: 1.08em; }
+.cs-appro-list { display: flex; flex-direction: column; }
+.cs-appro-l { display: grid; grid-template-columns: 128px 1fr auto; align-items: baseline; gap: 10px; padding: 9px 2px; border-top: 1px solid var(--border-light);
+  color: var(--text-primary); text-decoration: none; font-size: 14px; line-height: 1.35; }
+.cs-appro-list .cs-appro-l:first-child { border-top: 0; }
+.cs-appro-t { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-tertiary); }
+.cs-appro-f { color: var(--accent); transition: transform .15s; }
+.cs-appro-l:hover .cs-appro-n { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.cs-appro-l:hover .cs-appro-f { transform: translateX(3px); }
+.cs-appro-agg { margin: 1rem 0 0; text-align: left; }
+.modal-body .cs-appro { margin-top: 1rem; }
+@media (max-width: 620px) {
+  .cs-appro-l { grid-template-columns: 1fr auto; gap: 2px 10px; }
+  .cs-appro-t { grid-column: 1 / -1; }
+}
 
 /* Stati vuoti: calice al posto delle emoji */
 .empty-state { color: var(--text-secondary); font-size: 15px; gap: 12px; text-align: center; }
@@ -647,7 +659,7 @@ body > .cs-foot { margin-top: 3.5rem; }
   <div class="cs-band-in">
     <a class="cs-band-brand" href="https://caliceesapere.it" target="_blank" rel="noopener" title="Vai a caliceesapere.it"><svg class="cs-band-glass" aria-hidden="true"><use href="#i-calice"/></svg><span>Calice e Sapere</span></a>
     <span class="cs-band-sep">/</span>
-    <span class="cs-band-app">Quiz Sommelier <span class="cs-band-ver">v2.81</span></span>
+    <span class="cs-band-app">Quiz Sommelier <span class="cs-band-ver">v2.82</span></span>
     <nav class="cs-band-nav" aria-label="Sezioni di Calice e Sapere">
       <a href="https://caliceesapere.it/approfondimenti" target="_blank" rel="noopener">Approfondimenti</a>
       <a href="https://caliceesapere.it/docg" target="_blank" rel="noopener">DOCG</a>
@@ -990,7 +1002,7 @@ body > .cs-foot { margin-top: 3.5rem; }
       <a href="https://caliceesapere.it/responsabile" target="_blank" rel="noopener">Bere responsabile</a>
     </nav>
   </div>
-  <div class="cs-foot-base"><span>© Calice e Sapere · strumento di studio indipendente</span><span>Quiz Sommelier v2.81</span></div>
+  <div class="cs-foot-base"><span>© Calice e Sapere · strumento di studio indipendente</span><span>Quiz Sommelier v2.82</span></div>
 </footer>
 
 <script>
@@ -4263,11 +4275,19 @@ feedback = function(ok) {
 checkSession();
 
 // ══════════════════════════════════════════════
-// LINK "RIPASSA SU CALICE E SAPERE" (v2.79)
-// Dopo ogni verifica nel quiz principale aggiunge un link alla sezione
-// del sito pertinente. Solo presentazione: non tocca punteggi né Supabase.
+// INTEGRAZIONE CON CALICE E SAPERE (v2.82)
+// Il quiz legge l'indice pubblico del sito (/_build/indice.json) e, dal testo
+// della domanda, della risposta giusta e della spiegazione, propone le pagine
+// pertinenti: vitigni, approfondimenti, "Da non confondere", glossario,
+// "Numeri da ricordare", vino della settimana, catalogo DOCG.
+// Ogni contenuto nuovo pubblicato sul sito diventa suggeribile senza toccare il quiz.
+// Solo presentazione: non tocca punteggi né Supabase. Se il sito non risponde
+// restano i link alle sezioni generali.
 // ══════════════════════════════════════════════
 const CS_URL = 'https://caliceesapere.it';
+const CS_INDICE_URL = CS_URL + '/_build/indice.json';
+const CS_CACHE_KEY = 'cs_indice_v1';
+const CS_CACHE_ORE = 6;
 const CS_REGIONI = {
   'abruzzo':'Abruzzo','basilicata':'Basilicata','calabria':'Calabria','campania':'Campania',
   'emilia-romagna':'Emilia-Romagna','friuli-venezia-giulia':'Friuli Venezia Giulia','lazio':'Lazio',
@@ -4275,56 +4295,341 @@ const CS_REGIONI = {
   'puglia':'Puglia','sardegna':'Sardegna','sicilia':'Sicilia','toscana':'Toscana',
   'trentino-alto-adige':'Trentino-Alto Adige','umbria':'Umbria','valle-d-aosta':"Valle d'Aosta",'veneto':'Veneto'
 };
+// Sezione generale del sito per categoria di domande (ultima risorsa)
 const CS_ARGOMENTI = [
-  [/spumant|bollicin|champenois|charmat|martinotti|metodo-classico/, '/bollicine', 'le bollicine'],
-  [/passit|speciali|liquoros|fortificat|muffat|tardiv|marsala|porto|sherry/, '/speciali', 'i vini speciali'],
-  [/vign|vite|viticolt|ampelograf|potatur|allevament|terren|fenolog|vitign/, '/vigna', 'la vigna'],
-  [/vinificaz|cantina|enolog|fermentaz|difett|affinament|chimic|mosto/, '/cantina', 'la cantina'],
-  [/degust|sensorial|analisi|servizio|temperatur|bicchier|olfatt|visiv|gustativ/, '/degustazione', 'la degustazione'],
-  [/abbinament|cibo|gastronom/, '/abbinamento', "l'abbinamento cibo-vino"],
-  [/legisl|normativ|denominaz|docg|etichett|piramide/, '/docg', 'le denominazioni'],
-  [/franci|mondo|ester|spagn|german|portog|austri/, '/mondo', 'i vini del mondo'],
-  [/responsab|alcol|salute/, '/responsabile', 'il consumo responsabile'],
-  [/itali|region/, '/italia', "l'Italia del vino"]
+  [/spumant|bollicin|champenois|charmat|martinotti|metodo-classico/, '/bollicine', 'Bollicine'],
+  [/passit|speciali|liquoros|fortificat|muffat|tardiv|marsala|porto|sherry|rosati/, '/speciali', 'Passiti e vini speciali'],
+  [/vign|vite|viticolt|ampelograf|potatur|allevament|terren|suol|geolog|fenolog|ciclo|malatt|acino|bacca|sostenib/, '/vigna', 'La vigna'],
+  [/vinificaz|cantina|enolog|fermentaz|lievit|malolatt|difett|affinament|invecchiament|chimic|mosto/, '/cantina', 'La cantina'],
+  [/degust|sensorial|analisi|servizio|temperatur|bicchier/, '/degustazione', 'La degustazione'],
+  [/abbinament|cibo|gastronom/, '/abbinamento', "L'abbinamento cibo-vino"],
+  [/legisl|normativ|denominaz|docg|etichett|piramide/, '/docg', 'Le denominazioni'],
+  [/franci|mondo|ester|spagn|german|portog|austri|internazional/, '/mondo', 'I vini del mondo'],
+  [/responsab|alcol|salute/, '/responsabile', 'Il consumo responsabile'],
+  [/itali|region/, '/italia', "L'Italia del vino"]
 ];
+// Indizi tematici per pagine il cui titolo da solo non basta (chiave = slug)
+const CS_INDIZI = {
+  'ciclo-vegetativo-potatura': /\b(potatur\w*|germogliament\w*|fioritur\w*|allegagion\w*|invaiatur\w*|agostament\w*|guyot|cordone speronato|sistem\w* di allevamento|pianto)\b/,
+  'vinificazione-in-rosso': /\b(macerazion\w*|rimontagg\w*|follatur\w*|svinatur\w*|delestage|cappello|vinificazione in rosso)\b/,
+  'temperature-di-servizio': /\b(temperatur\w*( \w+){0,4} (servizio|serv\w*)|(si serve|servire|servito|servita) a \d+)/,
+  'spumanti-mesi-sui-lieviti-e-dosaggi': /\b(sui lieviti|dosaggio|brut|extra dry|pas dose|dosaggio zero|demi sec|extra brut)\b/,
+  'passiti-e-liquorosi-gradi-e-zuccheri': /\b(passit\w*|liquoros\w*|fortificat\w*|vendemmia tardiva|appassiment\w*)\b/,
+  'legislazione-piramide-qualita-in-numeri': /\b(piramide|docg|doc|igt|igp|dop|denominazion\w*|disciplinar\w*)\b/,
+  'affinamenti-minimi-grandi-rossi-italiani': /\b(affinament\w* minim\w*|invecchiament\w* minim\w*|riserva|mesi in legno|anni di invecchiamento)\b/,
+  'francia-date-e-classificazioni': /\b(1855|grand cru classe|premier cru|classificazion\w*|cru bourgeois|saint emilion)\b/,
+  'vite-e-uva-zuccheri-alcol-potenziale-rese': /\b(alcol potenziale|resa|rese|quintali|zuccheri dell uva|grado zuccherino)\b/
+};
+// Falsi positivi noti: la chiave non conta se il testo contiene il pattern
+const CS_ESCLUDI = { 'montepulciano': /nobile di montepulciano/ };
+const CS_PAROLE_VUOTE = new Set(['valle','della','delle','dello','regno','ciclo','rosso','bianco','bianchi','rossi',
+  'grandi','grande','ricordare','differenze','denominazioni','passo','fasi','cosa','esame','zone','vitigni','livelli',
+  'sistemi','dettaglio','giardino','francia','italia','docg','doc','aoc','grand','cru','rive','gauche','droite','scala','suoli']);
+const CS_GENERICI_CONFRONTO = new Set(['metodo','sherry','vino','cerasuolo','moscato','montepulciano','pouilly','asti','brut','extra']);
+const CS_TIPI = {
+  vitigno:'Vitigno', appro:'Approfondimento', confronto:'Da non confondere', glossario:'Glossario',
+  numeri:'Numeri da ricordare', vino:'Vino della settimana', docg:'Catalogo DOCG', sezione:'Sezione'
+};
+
 function csSlug(t) {
   return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
     .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
-function csRegione(nome) { return CS_REGIONI[csSlug(nome)] || null; }
-function csLinkPerDomanda() {
-  if (sezione === 'produzione') {
-    const c = csSlug(prodCategoria);
-    for (const [re, href, label] of CS_ARGOMENTI) if (re.test(c)) return { href, label: 'Ripassa ' + label };
-    return { href: '/domande', label: 'Allenati con altre domande' };
-  }
-  if (country === 'francia') return { href: '/mondo', label: 'Ripassa la Francia del vino' };
-  let reg = null;
-  if (mode === 'area') reg = csRegione(selected);
-  else if (mode === 'class' && allClass && allClass[selected]) reg = csRegione(allClass[selected][0]);
-  if (reg) return { href: '/docg?regione=' + encodeURIComponent(reg), label: 'Ripassa le DOCG di ' + reg };
-  return { href: '/italia', label: "Ripassa l'Italia del vino" };
+function csNorm(t) {
+  return ' ' + String(t || '').replace(/<[^>]*>/g, ' ').normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/[^a-z0-9°]+/g, ' ').trim() + ' ';
 }
-function aggiungiLinkCalice() {
+function csHas(testoNorm, chiave) {
+  const k = csNorm(chiave).trim();
+  if (!k || testoNorm.indexOf(' ' + k + ' ') < 0) return false;
+  const ex = CS_ESCLUDI[k];
+  if (ex && ex.test(testoNorm) && testoNorm.split(' ' + k + ' ').length - 1 <= (testoNorm.match(ex) || []).length) return false;
+  return true;
+}
+function csEsc(t) {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function csRegione(nome) { return CS_REGIONI[csSlug(nome)] || null; }
+
+// ── Lettura indice del sito (cache locale di qualche ora) ──
+let _csVoci = null, _csPromessa = null;
+function csLeggiCache(anchheScaduta) {
+  try {
+    const c = JSON.parse(localStorage.getItem(CS_CACHE_KEY) || 'null');
+    if (c && c.dati && (anchheScaduta || Date.now() - c.t < CS_CACHE_ORE * 3600e3)) return c.dati;
+  } catch (e) {}
+  return null;
+}
+function csIndice() {
+  if (_csVoci) return Promise.resolve(_csVoci);
+  if (_csPromessa) return _csPromessa;
+  const fresca = csLeggiCache(false);
+  if (fresca) { _csVoci = csCostruisciVoci(fresca); return Promise.resolve(_csVoci); }
+  _csPromessa = fetch(CS_INDICE_URL, { cache: 'no-cache' })
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(dati => {
+      try { localStorage.setItem(CS_CACHE_KEY, JSON.stringify({ t: Date.now(), dati })); } catch (e) {}
+      return dati;
+    })
+    .catch(() => csLeggiCache(true))
+    .then(dati => { _csVoci = dati ? csCostruisciVoci(dati) : []; _csPromessa = null; return _csVoci; });
+  return _csPromessa;
+}
+function csParoleTitolo(t) {
+  return String(t || '').split(/[^A-Za-zÀ-ÿ’']+/).filter(w => {
+    const n = csSlug(w);
+    if (n.length < 4 || CS_PAROLE_VUOTE.has(n)) return false;
+    return /^[A-ZÀ-Ý]/.test(w) || n.length >= 7;
+  });
+}
+function csCostruisciVoci(d) {
+  const voci = [];
+  const add = (tipo, href, titolo, chiavi, extra) => voci.push(Object.assign({ tipo, href, titolo, chiavi }, extra || {}));
+  (d.vitigni || []).forEach(v => add('vitigno', '/vitigni/' + v.slug, v.nome, [[v.nome, 3]]));
+  (d.vini || []).forEach(v => {
+    const sogg = String(v.titolo).split(':')[0];
+    add('vino', '/vino-della-settimana/' + v.slug, v.titolo, [[sogg, 3]]);
+  });
+  (d.approfondimenti || []).forEach(a => {
+    const tit = String(a.titolo);
+    const sogg = tit.split(/[:,]/)[0].trim();
+    const resto = tit.slice(sogg.length);
+    const ch = [[sogg, 3]];
+    sogg.split(/[\s-]+/).forEach(w => { const n = csSlug(w); if (n.length >= 5 && !CS_PAROLE_VUOTE.has(n) && n !== csSlug(sogg)) ch.push([w, 2]); });
+    // nomi propri nel titolo (vitigni, zone, vini) pesano più delle parole comuni
+    csParoleTitolo(resto).forEach(w => ch.push([w, /^[A-ZÀ-Ý]/.test(w) ? 2 : 1]));
+    add('appro', '/approfondimenti/' + a.slug, tit, ch, { slug: a.slug });
+  });
+  (d.confronti || []).forEach(c => {
+    const sogg = String(c.titolo).split(':')[0];
+    const lati = sogg.split(/\s+ed?\s+/).map(s => s.trim()).filter(Boolean);
+    const latiChiavi = lati.map(l => {
+      const ks = [l];
+      const p = l.split(/[\s’']+/)[0];
+      if (l.indexOf(' ') > 0 && p.length >= 5 && !CS_GENERICI_CONFRONTO.has(csSlug(p))) ks.push(p);
+      return ks;
+    });
+    add('confronto', '/da-non-confondere/' + c.slug, c.titolo, [], { lati: latiChiavi });
+  });
+  (d.numeri || []).forEach(n => {
+    const ch = CS_INDIZI[n.slug] ? [] : csParoleTitolo(n.tema).filter(w => csSlug(w).length >= 6).map(w => [w, 1]);
+    add('numeri', '/numeri#' + n.slug, n.tema, ch, { slug: n.slug });
+  });
+  (d.glossario || []).forEach(g => {
+    if (csSlug(g) === 'sommelier') return;
+    add('glossario', '/glossario#' + csSlug(g), g, [[g, 2]]);
+  });
+  (d.docg || []).forEach(r => { if (r.n > 0) add('docg', '/docg/' + r.slug, 'DOCG ' + r.regione, [[r.regione, 1.5]], { regione: r.regione }); });
+  return voci;
+}
+
+// ── Punteggio delle pagine rispetto a un testo ──
+function csPunteggi(testo, voci) {
+  const t = csNorm(testo);
+  const out = [];
+  for (const v of voci) {
+    let s = 0;
+    for (const [k, w] of v.chiavi) if (csHas(t, k)) s += w;
+    if (v.lati) {
+      const hit = v.lati.filter(ks => ks.some(k => csHas(t, k))).length;
+      s += hit >= 2 ? 5 : hit === 1 ? 2 : 0;
+    }
+    if (v.slug && CS_INDIZI[v.slug] && CS_INDIZI[v.slug].test(t)) s += 3;
+    if (s > 0) out.push({ v, s });
+  }
+  return out;
+}
+// Sceglie fino a n pagine, variando i tipi (max 2 voci di glossario, 1 catalogo DOCG)
+function csScegli(punteggi, n, soglia) {
+  const lim = { glossario: 2, docg: 1, numeri: 1 };
+  const usati = {}, viste = new Set(), res = [];
+  punteggi.sort((a, b) => b.s - a.s || (a.v.tipo === 'glossario') - (b.v.tipo === 'glossario'));
+  for (const { v, s } of punteggi) {
+    if (s < (soglia || 2) || viste.has(v.href)) continue;
+    if (lim[v.tipo] && (usati[v.tipo] || 0) >= lim[v.tipo]) continue;
+    usati[v.tipo] = (usati[v.tipo] || 0) + 1; viste.add(v.href); res.push(v);
+    if (res.length >= n) break;
+  }
+  return res;
+}
+function csSezionePerCategoria(cat) {
+  const c = csSlug(cat);
+  for (const [re, href, label] of CS_ARGOMENTI) if (re.test(c)) return { tipo: 'sezione', href, titolo: label };
+  return { tipo: 'sezione', href: '/domande', titolo: 'Domande di allenamento' };
+}
+
+// ── Contesto della domanda appena verificata ──
+function csContestoCorrente() {
+  if (sezione === 'produzione') {
+    const el = document.getElementById('vf-testo') || document.getElementById('sm-testo');
+    let testo = el ? el.textContent : '';
+    if (currentOptions && currentOptions.opts) testo += ' ' + currentOptions.opts.filter(o => o.ok).map(o => o.t).join(' ');
+    if (currentOptions && currentOptions.sp) testo += ' ' + currentOptions.sp;
+    return { testo, categoria: prodCategoria, sezione: csSezionePerCategoria(prodCategoria) };
+  }
+  // Quiz geografici: il soggetto è la voce selezionata
+  let testo = selected || '', sez;
+  if (country === 'francia') {
+    testo += ' ' + (selectedAreale || '');
+    sez = { tipo: 'sezione', href: '/mondo', titolo: 'La Francia del vino' };
+  } else {
+    let reg = null;
+    if (mode === 'area') reg = csRegione(selected);
+    else if (mode === 'class' && allClass && allClass[selected]) { reg = csRegione(allClass[selected][0]); testo += ' ' + allClass[selected].join(' '); }
+    sez = reg ? { tipo: 'docg', href: '/docg/' + csSlug(reg), titolo: 'DOCG ' + reg }
+              : { tipo: 'sezione', href: '/italia', titolo: "L'Italia del vino" };
+  }
+  return { testo, sezione: sez, geo: true };
+}
+function csSuggerisci(ctx, voci, n) {
+  let p = csPunteggi(ctx.testo, voci);
+  // nei quiz geografici niente glossario: il soggetto è un nome proprio
+  if (ctx.geo) p = p.filter(x => x.v.tipo !== 'glossario');
+  const res = csScegli(p, n, ctx.geo ? 1.5 : 2);
+  if (res.length < n && ctx.sezione && !res.some(v => v.href === ctx.sezione.href)) res.push(ctx.sezione);
+  return res;
+}
+
+// ── Disegno ──
+function csLinkHtml(v) {
+  return `<a class="cs-appro-l" href="${CS_URL + v.href}" target="_blank" rel="noopener">` +
+    `<span class="cs-appro-t">${CS_TIPI[v.tipo] || ''}</span><span class="cs-appro-n">${csEsc(v.titolo)}</span>` +
+    `<span class="cs-appro-f" aria-hidden="true">→</span></a>`;
+}
+function csBoxHtml(titolo, voci, id) {
+  if (!voci.length) return '';
+  return `<div class="cs-appro"${id ? ` id="${id}"` : ''}><div class="cs-appro-h">` +
+    `<svg class="cs-i" aria-hidden="true"><use href="#i-calice"/></svg><span>${titolo} su <em>Calice e Sapere</em></span></div>` +
+    `<div class="cs-appro-list">${voci.map(csLinkHtml).join('')}</div></div>`;
+}
+
+// Riquadro dopo ogni verifica nel quiz principale
+let _csTurno = 0;
+function aggiungiLinkCalice(ok) {
   try {
     const panel = document.getElementById('main-panel');
     if (!panel || !document.getElementById('feedback')) return;
-    const prev = document.getElementById('cs-ripassa');
-    if (prev) prev.remove();
-    const l = csLinkPerDomanda();
-    const a = document.createElement('a');
-    a.id = 'cs-ripassa'; a.className = 'cs-ripassa';
-    a.href = CS_URL + l.href; a.target = '_blank'; a.rel = 'noopener';
-    a.innerHTML = '<svg class="cs-i" aria-hidden="true"><use href="#i-calice"/></svg><span>' +
-      l.label + ' su <em>Calice e Sapere</em></span><span aria-hidden="true">→</span>';
-    panel.appendChild(a);
-  } catch (e) { /* il link è un di più: mai bloccare il quiz */ }
+    const prev = document.getElementById('cs-approfondisci'); if (prev) prev.remove();
+    const ctx = csContestoCorrente();
+    const titolo = ok ? 'Approfondisci' : 'Ripassa';
+    const turno = ++_csTurno;
+    const disegna = voci => {
+      if (turno !== _csTurno) return;          // l'utente è già andato avanti
+      const old = document.getElementById('cs-approfondisci'); if (old) old.remove();
+      const sugg = csSuggerisci(ctx, voci, 3);
+      if (!sugg.length) return;
+      panel.insertAdjacentHTML('beforeend', csBoxHtml(titolo, sugg, 'cs-approfondisci'));
+    };
+    disegna(_csVoci || []);                    // subito, anche solo con la sezione
+    if (!_csVoci) csIndice().then(disegna);
+  } catch (e) { /* il riquadro è un di più: mai bloccare il quiz */ }
 }
 const _feedbackPrimaDiCalice = feedback;
 feedback = function(ok) {
   _feedbackPrimaDiCalice(ok);
-  aggiungiLinkCalice();
+  aggiungiLinkCalice(ok);
 };
+
+// Suggerimenti aggregati da un elenco di errori (riepiloghi e ripasso)
+function csTestoErrore(e) {
+  if (!e) return '';
+  if (typeof e === 'string') return e;
+  let t = (e.d || '') + ' ' + (e._rispostaCorretta || '') + ' ' + (e._spiegazione || e.sp || '');
+  if (Array.isArray(e.ops)) t += ' ' + e.ops.filter(o => o && o.ok).map(o => o.t).join(' ');
+  if (e.entita) t += ' ' + e.entita;
+  return t;
+}
+function csSuggerimentiAggregati(errori, voci, n) {
+  const tot = new Map();
+  for (const e of errori) {
+    for (const { v, s } of csPunteggi(csTestoErrore(e), voci)) {
+      if (s < 2) continue;
+      const cur = tot.get(v.href) || { v, s: 0, k: 0 };
+      cur.s += s; cur.k++; tot.set(v.href, cur);
+    }
+  }
+  return csScegli([...tot.values()].map(x => ({ v: x.v, s: x.s + x.k })), n, 2);
+}
+function csIniettaAggregato(contenitore, errori, n, titolo) {
+  try {
+    if (!contenitore || !errori || !errori.length) return;
+    csIndice().then(voci => {
+      if (!contenitore.isConnected) return;
+      const old = contenitore.querySelector('.cs-appro-agg'); if (old) old.remove();
+      const sugg = csSuggerimentiAggregati(errori, voci, n || 5);
+      if (!sugg.length) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'cs-appro-agg';
+      wrap.innerHTML = csBoxHtml(titolo || 'Da ripassare', sugg);
+      contenitore.appendChild(wrap);
+    });
+  } catch (e) {}
+}
+
+// Riepilogo di fine mazzo (domande teoriche)
+const _renderRiepilogoPrimaDiCalice = renderRiepilogo;
+renderRiepilogo = function(panel) {
+  _renderRiepilogoPrimaDiCalice(panel);
+  csIniettaAggregato(panel, prodSessioneErrori.slice(), 5, 'Da ripassare');
+};
+// Riepilogo della modalità esame
+const _renderRiepilogoEsamePrimaDiCalice = renderRiepilogoEsame;
+renderRiepilogoEsame = function(manual) {
+  _renderRiepilogoEsamePrimaDiCalice(manual);
+  csIniettaAggregato(document.getElementById('riepilogo-esame-content'), esameErrori.slice(), 6, 'Da ripassare');
+};
+// Schermata "Ripassa gli errori" (sessione e storico)
+const _renderRipassaListaPrimaDiCalice = renderRipassaLista;
+renderRipassaLista = function(el, domande, geo, tipo) {
+  _renderRipassaListaPrimaDiCalice(el, domande, geo, tipo);
+  const errori = [...(domande || []), ...(geo || []).map(g => ({ entita: g.entita }))];
+  csIniettaAggregato(el, errori, 6, 'Studia questi argomenti');
+};
+
+// Schede e glossario interni: rimando alla pagina corrispondente del sito
+function csAggiungiAlModal(voci) {
+  const body = document.getElementById('modal-body');
+  const ov = document.getElementById('modal-overlay');
+  if (!body || !voci.length || (ov && ov.style.display === 'none')) return;
+  const old = body.querySelector('.cs-appro'); if (old) old.remove();
+  body.insertAdjacentHTML('beforeend', csBoxHtml('Leggi', voci));
+}
+const _mostraGlossarioPrimaDiCalice = mostraGlossario;
+mostraGlossario = async function(termine) {
+  await _mostraGlossarioPrimaDiCalice(termine);
+  try {
+    const voci = await csIndice();
+    const v = voci.find(x => x.tipo === 'glossario' && csSlug(x.titolo) === csSlug(termine));
+    const extra = csScegli(csPunteggi(termine, voci).filter(x => x.v.tipo !== 'glossario'), 1, 2);
+    csAggiungiAlModal([v, ...extra].filter(Boolean));
+  } catch (e) {}
+};
+const _mostraSchedaVitignoPrimaDiCalice = mostraSchedaVitigno;
+mostraSchedaVitigno = async function(nome, paese) {
+  await _mostraSchedaVitignoPrimaDiCalice(nome, paese);
+  try {
+    const voci = await csIndice();
+    const p = csPunteggi(nome, voci).filter(x => x.v.tipo !== 'glossario' && x.v.tipo !== 'docg');
+    csAggiungiAlModal(csScegli(p, 3, 1.5));
+  } catch (e) {}
+};
+const _mostraSchedaRegionePrimaDiCalice = mostraSchedaRegione;
+mostraSchedaRegione = async function(nome, paese) {
+  await _mostraSchedaRegionePrimaDiCalice(nome, paese);
+  try {
+    const voci = await csIndice();
+    const p = csPunteggi(nome, voci).filter(x => x.v.tipo !== 'glossario');
+    const sugg = csScegli(p, 3, 1.5);
+    if (paese !== 'francia' && !sugg.some(v => v.tipo === 'docg')) {
+      const reg = csRegione(nome);
+      if (reg) sugg.push({ tipo: 'docg', href: '/docg/' + csSlug(reg), titolo: 'DOCG ' + reg });
+    }
+    csAggiungiAlModal(sugg);
+  } catch (e) {}
+};
+
+// Precarica l'indice in sottofondo, così il primo riquadro è già completo
+setTimeout(() => { csIndice(); }, 1500);
 </script>
 </body>
 </html>
